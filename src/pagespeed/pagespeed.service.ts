@@ -1,4 +1,4 @@
-import { Injectable, Param } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { HttpService } from '@nestjs/axios';
@@ -6,6 +6,14 @@ import { PageSpeedData } from './entities/pagespeeddata.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
+import {
+  ILigthHouseMetrics,
+  IThirdPartySummary,
+} from 'src/shared/pagespeed/pagespeed.interface';
+import {
+  IMainThreadWorkBreakdown,
+  IMainThreadWorkBreakdownDetailsItem,
+} from 'src/shared/pagespeed/mainthreadworkbreakdown.interface';
 
 @Injectable()
 export class PagespeedService {
@@ -17,38 +25,156 @@ export class PagespeedService {
   ) {}
 
   API_KEY = this.configService.get<string>('API_KEY');
-
+  //Request with URL and API Key to Google Lighthouse
   async pageSpeedRequest(url?: string): Promise<any> {
-    const response$ = this.httpService
-      .get(
-        `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${url}&key=${this.API_KEY}`,
-      )
-      .pipe(map((response) => response.data));
-    const data = await firstValueFrom(response$);
-    return data;
+    console.log('URL:', url);
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      console.log('URLs StartsWith:', url);
+      const response$ = this.httpService
+        .get(
+          `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${url}&key=${this.API_KEY}`,
+        )
+        .pipe(map((response) => response.data));
+      const data = await firstValueFrom(response$);
+      return data;
+    } else {
+      try {
+        const urlToTry = 'https://' + url;
+        console.log('URL Trying:', urlToTry);
+        const response$ = this.httpService
+          .get(
+            `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${urlToTry}&key=${this.API_KEY}`,
+          )
+          .pipe(map((response) => response.data));
+        const data = await firstValueFrom(response$);
+        return data;
+      } catch (error) {
+        const urlToTry = 'http://' + url;
+        console.log('URL Trying:', urlToTry);
+        const response$ = this.httpService
+          .get(
+            `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${urlToTry}&key=${this.API_KEY}`,
+          )
+          .pipe(map((response) => response.data));
+        const data = await firstValueFrom(response$);
+        return data;
+      }
+    }
   }
 
-  async getPageSpeedResult(@Param('url') url: string): Promise<void> {
+  async getPageSpeedResult(url: string): Promise<void> {
     const data = await this.pageSpeedRequest(url);
+
+    // Datas from pagespeed request
+    const firstContentfulPaintData =
+      data.lighthouseResult.audits['first-contentful-paint'];
+    const firstMeaningfulPaintData =
+      data.lighthouseResult.audits['first-meaningful-paint'];
+    const mainThreadWorkBreakdownData =
+      data.lighthouseResult.audits['mainthread-work-breakdown'];
+    const unusedCssRulesData = data.lighthouseResult.audits['unused-css-rules'];
+    const speedIndexData = data.lighthouseResult.audits['speed-index'];
+    const thirdPartySummaryData =
+      data.lighthouseResult.audits['third-party-summary'];
+    const totalByteWeightData =
+      data.lighthouseResult.audits['total-byte-weight'];
+    const totalBlockingTimeData =
+      data.lighthouseResult.audits['total-blocking-time'];
+    const timeToInteractiveData = data.lighthouseResult.audits['interactive'];
+    const domSizeData = data.lighthouseResult.audits['dom-size'];
+    // Create new entity and save to database
     const entity = new PageSpeedData();
-    entity.firstContentfulPaintScore =
-      data.lighthouseResult.audits['first-contentful-paint'].score;
-    entity.firstMeaningfulPaintNumericUnit =
-      data.lighthouseResult.audits['first-contentful-paint'].numericUnit;
+
+    // Save customer url
+    entity.url = url;
+
+    // First Contentful Paint Data
+    entity.firstContentfulPaintScore = firstContentfulPaintData.score;
     entity.firstContentfulPaintNumericValue =
-      data.lighthouseResult.audits['first-contentful-paint'].numericValue;
+      firstContentfulPaintData.numericUnit;
+    entity.firstContentfulPaintNumericValue =
+      firstContentfulPaintData.numericValue;
     entity.firstContentfulPaintDisplayValue =
-      data.lighthouseResult.audits['first-contentful-paint'].displayValue;
-    console.log(
-      'Score',
-      entity.firstContentfulPaintScore,
-      'NumericNum',
-      entity.firstContentfulPaintNumericValue,
-      'NumericUnit',
-      entity.firstMeaningfulPaintNumericUnit,
-      'DisplayValue',
-      entity.firstContentfulPaintDisplayValue,
+      firstContentfulPaintData.displayValue;
+
+    // First Meaningful Paint Data
+    entity.firstMeaningfulPaintScore = firstMeaningfulPaintData.score;
+    entity.firstMeaningfulPaintNumericValue =
+      entity.firstMeaningfulPaintNumericUnit =
+        firstMeaningfulPaintData.numericUnit;
+    entity.firstMeaningfulPaintDisplayValue =
+      firstMeaningfulPaintData.displayValue;
+
+    // Main Thread Work Breakdown Data
+    entity.mainThreadWorkBreakdownDisplayValue =
+      mainThreadWorkBreakdownData.displayValue;
+    entity.mainThreadWorkBreakdownNumricValue =
+      mainThreadWorkBreakdownData.numericValue;
+    entity.mainThreadWorkBreakdownNumericUnit =
+      mainThreadWorkBreakdownData.numericUnit;
+    entity.mainThreadWorkBreakdownItemsDuration =
+      mainThreadWorkBreakdownData.details.items.map(
+        (item: IMainThreadWorkBreakdownDetailsItem) => item.duration,
+      );
+    entity.mainThreadWorkBreakdownItemsGroupLable =
+      mainThreadWorkBreakdownData.details.items.map(
+        (item: IMainThreadWorkBreakdownDetailsItem) => item.groupLable,
+      );
+
+    // Unused CSS Rules Data
+    entity.unusedCssRulesItems = unusedCssRulesData.details.items.map(
+      (item: any) => item.url,
     );
+
+    // Speed Index Data
+    entity.speedIndexScore = speedIndexData.score;
+    entity.speedIndexDisplayValue = speedIndexData.displayValue;
+
+    // Third Party Summary Data
+    entity.thirdPartySummaryDisplayValue = thirdPartySummaryData.displayValue;
+    // entity.thirdPartySummaryItemsUrl = thirdPartySummaryData.details.item.map(
+    //   (item: any) => item.url,
+    // );
+    entity.thirdPartySummaryItemsTransfer =
+      thirdPartySummaryData.details.item.map(
+        (item: IThirdPartySummary) => item.transferSize,
+      );
+    entity.thirdPartySummaryItemsMainThred =
+      thirdPartySummaryData.details.item.map(
+        (item: any) => item.mainThreadTime,
+      );
+    entity.thirdPartySummaryItemsBlockingTime =
+      thirdPartySummaryData.details.item.map((item: any) => item.blockingTime);
+
+    // Total Byte Weight Data
+    entity.totalByteWeightScore = totalByteWeightData.score;
+    entity.totalByteWeightDisplayValue = totalByteWeightData.displayValue;
+    entity.totalByteWeightNumericValue = totalByteWeightData.numericValue;
+    entity.totalByteWeightNumericUnit = totalByteWeightData.numericUnit;
+    entity.totalByteWeightItemsUrl = totalByteWeightData.details.items.map(
+      (item: any) => item.url,
+    );
+    entity.totalByteWeightItemsTotalBytes =
+      totalByteWeightData.details.items.map((item: any) => item.totalBytes);
+
+    // Total Blocking Time Data
+    entity.totalBlockingTimeScore = totalBlockingTimeData.score;
+    entity.totalBlockingTimeDisplayValue = totalBlockingTimeData.displayValue;
+    entity.totalBlockingTimeNumericValue = totalBlockingTimeData.numericValue;
+    entity.totalBlockingTimeNumericUnit = totalBlockingTimeData.numericUnit;
+
+    // Time To Interactive Data
+    entity.timeToInteractiveScore = timeToInteractiveData.score;
+    entity.timeToInteractiveDisplayValue = timeToInteractiveData.displayValue;
+    entity.timeToInteractiveNumericValue = timeToInteractiveData.numericValue;
+    entity.timeToInteractiveNumericUnit = timeToInteractiveData.numericUnit;
+
+    // DOM Size Data
+    entity.domSizeScore = domSizeData.score;
+    entity.domSizeDisplayValue = domSizeData.displayValue;
+    entity.domSizeNumericValue = domSizeData.numericValue;
+    entity.domSizeNumericUnit = domSizeData.numericUnit;
+
     await this.pageSpeedEntity.save(entity);
   }
 }

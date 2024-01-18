@@ -5,6 +5,7 @@ import { HttpModule } from '@nestjs/axios';
 import { PagespeedModule } from './pagespeed/pagespeed.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PageSpeedData } from './pagespeed/entities/pagespeeddata.entity';
 
 @Module({
   imports: [
@@ -25,6 +26,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         username: configService.get<string>('DB_USER'),
         password: configService.get<string>('PASSWORD'),
         database: configService.get<string>('DATABASE'),
+        entities: [PageSpeedData],
+        synchronize: true,
       }),
     }),
   ],
