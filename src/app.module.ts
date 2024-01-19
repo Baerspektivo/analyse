@@ -28,6 +28,7 @@ import { PageSpeedData } from './pagespeed/entities/pagespeeddata.entity';
         database: configService.get<string>('DATABASE'),
         entities: [PageSpeedData],
         synchronize: true,
+        logging: true,
       }),
     }),
   ],

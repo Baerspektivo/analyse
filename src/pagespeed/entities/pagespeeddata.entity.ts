@@ -1,4 +1,3 @@
-import type { IThirdPartySummary } from 'src/shared/pagespeed/pagespeed.interface';
 import {
   Entity,
   Column,
@@ -6,6 +5,8 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { IThirdPartySummaryDetailsItemSubItemItem } from 'src/shared/pagespeed/thirdpartysummary.interface';
+import { Transform } from 'class-transformer';
 
 @Entity()
 export class PageSpeedData {
@@ -31,7 +32,7 @@ export class PageSpeedData {
 
   @Column()
   @ApiProperty()
-  firstMeaningfulPaintScore: string;
+  firstMeaningfulPaintScore: number;
 
   @Column()
   @ApiProperty()
@@ -145,13 +146,15 @@ export class PageSpeedData {
   @ApiProperty()
   unusedCssRulesItems: string;
 
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty()
-  thirdPartySummaryDisplayValue: string;
+  thirdPartySummaryDisplayValue: string | null;
 
-  // @Column()
-  // @ApiProperty()
-  // thirdPartySummaryItemsUrl: string;
+  @Column('text')
+  @ApiProperty({ type: () => [String] })
+  @Transform(({ value }) => JSON.stringify(value), { toClassOnly: true })
+  @Transform(({ value }) => JSON.parse(value), { toPlainOnly: true })
+  thirdPartySummaryItemsUrl: IThirdPartySummaryDetailsItemSubItemItem[];
 
   @Column()
   @ApiProperty()

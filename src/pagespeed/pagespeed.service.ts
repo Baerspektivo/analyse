@@ -6,14 +6,13 @@ import { PageSpeedData } from './entities/pagespeeddata.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
+import type { ILigthHouseMetrics } from 'src/shared/pagespeed/pagespeed.interface';
 import {
-  ILigthHouseMetrics,
-  IThirdPartySummary,
-} from 'src/shared/pagespeed/pagespeed.interface';
-import {
-  IMainThreadWorkBreakdown,
-  IMainThreadWorkBreakdownDetailsItem,
-} from 'src/shared/pagespeed/mainthreadworkbreakdown.interface';
+  IThirdPartySummaryDetailsItem,
+  IThirdPartySummaryDetailsItemSubItem,
+  IThirdPartySummaryDetailsItemSubItemItem,
+} from 'src/shared/pagespeed/thirdpartysummary.interface';
+import { type } from 'os';
 
 @Injectable()
 export class PagespeedService {
@@ -114,11 +113,11 @@ export class PagespeedService {
       mainThreadWorkBreakdownData.numericUnit;
     entity.mainThreadWorkBreakdownItemsDuration =
       mainThreadWorkBreakdownData.details.items.map(
-        (item: IMainThreadWorkBreakdownDetailsItem) => item.duration,
+        (item: any) => item.duration,
       );
     entity.mainThreadWorkBreakdownItemsGroupLable =
       mainThreadWorkBreakdownData.details.items.map(
-        (item: IMainThreadWorkBreakdownDetailsItem) => item.groupLable,
+        (item: any) => item.groupLable,
       );
 
     // Unused CSS Rules Data
@@ -132,48 +131,64 @@ export class PagespeedService {
 
     // Third Party Summary Data
     entity.thirdPartySummaryDisplayValue = thirdPartySummaryData.displayValue;
-    // entity.thirdPartySummaryItemsUrl = thirdPartySummaryData.details.item.map(
-    //   (item: any) => item.url,
-    // );
-    entity.thirdPartySummaryItemsTransfer =
-      thirdPartySummaryData.details.item.map(
-        (item: IThirdPartySummary) => item.transferSize,
+    entity.thirdPartySummaryItemsUrl =
+      thirdPartySummaryData.details.items.flatMap(
+        (item: IThirdPartySummaryDetailsItem) => {
+          // Check if subItems exists and is an array
+          if (item.subItems && Array.isArray(item.subItems)) {
+            // Mapping top-level items
+            return item.subItems.flatMap(
+              (subItem: IThirdPartySummaryDetailsItemSubItem) => {
+                // Mapping subitems
+                return [
+                  {
+                    url: subItem.items.url,
+                  },
+                ];
+              },
+            );
+          } else {
+            return [];
+          }
+        },
       );
-    entity.thirdPartySummaryItemsMainThred =
-      thirdPartySummaryData.details.item.map(
-        (item: any) => item.mainThreadTime,
-      );
-    entity.thirdPartySummaryItemsBlockingTime =
-      thirdPartySummaryData.details.item.map((item: any) => item.blockingTime);
+    // entity.thirdPartySummaryItemsTransfer =
+    //   thirdPartySummaryData.details.items.map((item: any) => item.transferSize);
+    // entity.thirdPartySummaryItemsMainThred =
+    //   thirdPartySummaryData.details.items.map(
+    //     (item: any) => item.mainThreadTime,
+    //   );
+    // entity.thirdPartySummaryItemsBlockingTime =
+    //   thirdPartySummaryData.details.items.map((item: any) => item.blockingTime);
 
     // Total Byte Weight Data
-    entity.totalByteWeightScore = totalByteWeightData.score;
-    entity.totalByteWeightDisplayValue = totalByteWeightData.displayValue;
-    entity.totalByteWeightNumericValue = totalByteWeightData.numericValue;
-    entity.totalByteWeightNumericUnit = totalByteWeightData.numericUnit;
-    entity.totalByteWeightItemsUrl = totalByteWeightData.details.items.map(
-      (item: any) => item.url,
-    );
-    entity.totalByteWeightItemsTotalBytes =
-      totalByteWeightData.details.items.map((item: any) => item.totalBytes);
+    // entity.totalByteWeightScore = totalByteWeightData.score;
+    // entity.totalByteWeightDisplayValue = totalByteWeightData.displayValue;
+    // entity.totalByteWeightNumericValue = totalByteWeightData.numericValue;
+    // entity.totalByteWeightNumericUnit = totalByteWeightData.numericUnit;
+    // entity.totalByteWeightItemsUrl = totalByteWeightData.details.items.map(
+    //   (item: any) => item.url,
+    // );
+    // entity.totalByteWeightItemsTotalBytes =
+    //   totalByteWeightData.details.items.map((item: any) => item.totalBytes);
 
     // Total Blocking Time Data
-    entity.totalBlockingTimeScore = totalBlockingTimeData.score;
-    entity.totalBlockingTimeDisplayValue = totalBlockingTimeData.displayValue;
-    entity.totalBlockingTimeNumericValue = totalBlockingTimeData.numericValue;
-    entity.totalBlockingTimeNumericUnit = totalBlockingTimeData.numericUnit;
+    // entity.totalBlockingTimeScore = totalBlockingTimeData.score;
+    // entity.totalBlockingTimeDisplayValue = totalBlockingTimeData.displayValue;
+    // entity.totalBlockingTimeNumericValue = totalBlockingTimeData.numericValue;
+    // entity.totalBlockingTimeNumericUnit = totalBlockingTimeData.numericUnit;
 
     // Time To Interactive Data
-    entity.timeToInteractiveScore = timeToInteractiveData.score;
-    entity.timeToInteractiveDisplayValue = timeToInteractiveData.displayValue;
-    entity.timeToInteractiveNumericValue = timeToInteractiveData.numericValue;
-    entity.timeToInteractiveNumericUnit = timeToInteractiveData.numericUnit;
+    // entity.timeToInteractiveScore = timeToInteractiveData.score;
+    // entity.timeToInteractiveDisplayValue = timeToInteractiveData.displayValue;
+    // entity.timeToInteractiveNumericValue = timeToInteractiveData.numericValue;
+    // entity.timeToInteractiveNumericUnit = timeToInteractiveData.numericUnit;
 
     // DOM Size Data
-    entity.domSizeScore = domSizeData.score;
-    entity.domSizeDisplayValue = domSizeData.displayValue;
-    entity.domSizeNumericValue = domSizeData.numericValue;
-    entity.domSizeNumericUnit = domSizeData.numericUnit;
+    // entity.domSizeScore = domSizeData.score;
+    // entity.domSizeDisplayValue = domSizeData.displayValue;
+    // entity.domSizeNumericValue = domSizeData.numericValue;
+    // entity.domSizeNumericUnit = domSizeData.numericUnit;
 
     await this.pageSpeedEntity.save(entity);
   }
