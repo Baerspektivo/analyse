@@ -5,8 +5,6 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { IThirdPartySummaryDetailsItemSubItemItem } from 'src/shared/pagespeed/thirdpartysummary.interface';
-import { Transform } from 'class-transformer';
 
 @Entity()
 export class PageSpeedData {
@@ -17,6 +15,14 @@ export class PageSpeedData {
   @Column()
   @ApiProperty()
   url: string;
+
+  @CreateDateColumn()
+  @ApiProperty()
+  createdAt: Date;
+
+  @Column('json')
+  @ApiProperty({ type: () => [String] })
+  lighthouseObjet: string[];
 
   @Column()
   @ApiProperty()
@@ -40,15 +46,11 @@ export class PageSpeedData {
 
   @Column()
   @ApiProperty()
-  firstMeaningfulPaintNumericValue: string;
+  firstMeaningfulPaintNumericValue: number;
 
   @Column()
   @ApiProperty()
   firstMeaningfulPaintNumericUnit: string;
-
-  @CreateDateColumn()
-  @ApiProperty()
-  createdAt: Date;
 
   @Column()
   @ApiProperty()
@@ -56,55 +58,55 @@ export class PageSpeedData {
 
   @Column()
   @ApiProperty()
-  mainThreadWorkBreakdownNumricValue: string;
+  mainThreadWorkBreakdownNumricValue: number;
 
   @Column()
   @ApiProperty()
   mainThreadWorkBreakdownNumericUnit: string;
 
-  @Column()
-  @ApiProperty()
-  mainThreadWorkBreakdownItemsGroupLable: string;
+  @Column('json')
+  @ApiProperty({ type: () => [String] })
+  mainThreadWorkBreakdownItemsGroupLabel: string[];
+
+  @Column('json')
+  @ApiProperty({ type: () => [Number] })
+  mainThreadWorkBreakdownItemsDuration: number[];
+  //
+  // @Column()
+  // @ApiProperty()
+  // comulativeLayoutShiftScore: string;
+  //
+  // @Column()
+  // @ApiProperty()
+  // comulativeLayoutShiftDisplayValue: string;
+  //
+  // @Column()
+  // @ApiProperty()
+  // critialRequestChainsDisplayValue: string;
+  //
+  // @Column()
+  // @ApiProperty()
+  // serverResponseTimeScore: string;
+  //
+  // @Column()
+  // @ApiProperty()
+  // serverResponseTimeDisplayValue: string;
+  //
+  // @Column()
+  // @ApiProperty()
+  // serverResponseTimeNumericValue: string;
+  //
+  // @Column()
+  // @ApiProperty()
+  // serverResponseTimeNumericUnit: string;
+  //
+  // @Column()
+  // @ApiProperty()
+  // pageSpeedScore: string;
 
   @Column()
   @ApiProperty()
-  mainThreadWorkBreakdownItemsDuration: string;
-
-  @Column()
-  @ApiProperty()
-  comulativeLayoutShiftScore: string;
-
-  @Column()
-  @ApiProperty()
-  comulativeLayoutShiftDisplayValue: string;
-
-  @Column()
-  @ApiProperty()
-  critialRequestChainsDisplayValue: string;
-
-  @Column()
-  @ApiProperty()
-  serverResponseTimeScore: string;
-
-  @Column()
-  @ApiProperty()
-  serverResponseTimeDisplayValue: string;
-
-  @Column()
-  @ApiProperty()
-  serverResponseTimeNumericValue: string;
-
-  @Column()
-  @ApiProperty()
-  serverResponseTimeNumericUnit: string;
-
-  @Column()
-  @ApiProperty()
-  pageSpeedScore: string;
-
-  @Column()
-  @ApiProperty()
-  speedIndexScore: string;
+  speedIndexScore: number;
 
   @Column()
   @ApiProperty()
@@ -112,20 +114,28 @@ export class PageSpeedData {
 
   @Column()
   @ApiProperty()
-  largestContentfulPaintScore: string;
+  speedIndexNumericValue: number;
 
   @Column()
   @ApiProperty()
-  largestContentfulPaintDisplayValue: string;
+  speedIndexNumericUnit: string;
 
-  @Column()
-  @ApiProperty()
-  largestContentfulPaintNumericValue: string;
-
-  @Column()
-  @ApiProperty()
-  largestContentfulPaintNumericUnit: string;
-
+  // @Column()
+  // @ApiProperty()
+  // largestContentfulPaintScore: string;
+  //
+  // @Column()
+  // @ApiProperty()
+  // largestContentfulPaintDisplayValue: string;
+  //
+  // @Column()
+  // @ApiProperty()
+  // largestContentfulPaintNumericValue: string;
+  //
+  // @Column()
+  // @ApiProperty()
+  // largestContentfulPaintNumericUnit: string;
+  //
   @Column()
   @ApiProperty()
   totalBlockingTimeScore: string;
@@ -142,31 +152,29 @@ export class PageSpeedData {
   @ApiProperty()
   totalBlockingTimeNumericUnit: string;
 
-  @Column()
-  @ApiProperty()
-  unusedCssRulesItems: string;
+  @Column('json')
+  @ApiProperty({ type: () => [String] })
+  unusedCssRulesItems: string[];
 
   @Column({ nullable: true })
   @ApiProperty()
   thirdPartySummaryDisplayValue: string | null;
 
-  @Column('text')
+  @Column('json', { nullable: true })
   @ApiProperty({ type: () => [String] })
-  @Transform(({ value }) => JSON.stringify(value), { toClassOnly: true })
-  @Transform(({ value }) => JSON.parse(value), { toPlainOnly: true })
-  thirdPartySummaryItemsUrl: IThirdPartySummaryDetailsItemSubItemItem[];
+  thirdPartySummaryItemsUrl: string[];
 
-  @Column()
-  @ApiProperty()
-  thirdPartySummaryItemsTransfer: string;
+  @Column('json', { nullable: true })
+  @ApiProperty({ type: () => [Number] })
+  thirdPartySummaryItemsTransfer: number[];
 
-  @Column()
-  @ApiProperty()
-  thirdPartySummaryItemsMainThred: string;
+  @Column('json', { nullable: true })
+  @ApiProperty({ type: () => [Number] })
+  thirdPartySummaryItemsMainThred: number[];
 
-  @Column()
-  @ApiProperty()
-  thirdPartySummaryItemsBlockingTime: string;
+  @Column('json', { nullable: true })
+  @ApiProperty({ type: () => [Number] })
+  thirdPartySummaryItemsBlockingTime: number[];
 
   @Column()
   @ApiProperty()
@@ -184,9 +192,9 @@ export class PageSpeedData {
   @ApiProperty()
   timeToInteractiveNumericUnit: string;
 
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty()
-  totalByteWeightScore: string;
+  totalByteWeightScore: number | null;
 
   @Column()
   @ApiProperty()
@@ -194,43 +202,43 @@ export class PageSpeedData {
 
   @Column()
   @ApiProperty()
-  totalByteWeightNumericValue: string;
+  totalByteWeightNumericValue: number;
 
   @Column()
   @ApiProperty()
   totalByteWeightNumericUnit: string;
 
-  @Column()
-  @ApiProperty()
-  totalByteWeightItemsUrl: string;
+  @Column('json')
+  @ApiProperty({ type: () => [String] })
+  totalByteWeightItemsUrl: string[];
 
-  @Column()
-  @ApiProperty()
-  totalByteWeightItemsTotalBytes: string;
+  @Column('json')
+  @ApiProperty({ type: () => [Number] })
+  totalByteWeightItemsTotalBytes: number[];
 
-  @Column()
+  // @Column()
+  // @ApiProperty()
+  // networkRequestsItemUrl: string;
+  //
+  // @Column()
+  // @ApiProperty()
+  // networkRequestsItemRequestTime: string;
+  //
+  // @Column()
+  // @ApiProperty()
+  // bootupTimeDisplayValue: string;
+  //
+  // @Column()
+  // @ApiProperty()
+  // bootupTimeNumericValue: string;
+  //
+  // @Column()
+  // @ApiProperty()
+  // bootupTimeNumericUnit: string;
+  //
+  @Column({ nullable: true })
   @ApiProperty()
-  networkRequestsItemUrl: string;
-
-  @Column()
-  @ApiProperty()
-  networkRequestsItemRequestTime: string;
-
-  @Column()
-  @ApiProperty()
-  bootupTimeDisplayValue: string;
-
-  @Column()
-  @ApiProperty()
-  bootupTimeNumericValue: string;
-
-  @Column()
-  @ApiProperty()
-  bootupTimeNumericUnit: string;
-
-  @Column()
-  @ApiProperty()
-  domSizeScore: string;
+  domSizeScore: number | null;
 
   @Column()
   @ApiProperty()

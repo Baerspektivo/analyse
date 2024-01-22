@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { HttpService } from '@nestjs/axios';
@@ -6,13 +6,6 @@ import { PageSpeedData } from './entities/pagespeeddata.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import type { ILigthHouseMetrics } from 'src/shared/pagespeed/pagespeed.interface';
-import {
-  IThirdPartySummaryDetailsItem,
-  IThirdPartySummaryDetailsItemSubItem,
-  IThirdPartySummaryDetailsItemSubItemItem,
-} from 'src/shared/pagespeed/thirdpartysummary.interface';
-import { type } from 'os';
 
 @Injectable()
 export class PagespeedService {
@@ -65,6 +58,7 @@ export class PagespeedService {
     const data = await this.pageSpeedRequest(url);
 
     // Datas from pagespeed request
+    const mainLighthouseObjet = data.lighthouseResult;
     const firstContentfulPaintData =
       data.lighthouseResult.audits['first-contentful-paint'];
     const firstMeaningfulPaintData =
@@ -85,6 +79,7 @@ export class PagespeedService {
     const entity = new PageSpeedData();
 
     // Save customer url
+    entity.lighthouseObjet = mainLighthouseObjet;
     entity.url = url;
 
     // First Contentful Paint Data
@@ -99,8 +94,9 @@ export class PagespeedService {
     // First Meaningful Paint Data
     entity.firstMeaningfulPaintScore = firstMeaningfulPaintData.score;
     entity.firstMeaningfulPaintNumericValue =
-      entity.firstMeaningfulPaintNumericUnit =
-        firstMeaningfulPaintData.numericUnit;
+      firstMeaningfulPaintData.numericValue;
+    entity.firstMeaningfulPaintNumericUnit =
+      firstMeaningfulPaintData.numericUnit;
     entity.firstMeaningfulPaintDisplayValue =
       firstMeaningfulPaintData.displayValue;
 
@@ -111,84 +107,128 @@ export class PagespeedService {
       mainThreadWorkBreakdownData.numericValue;
     entity.mainThreadWorkBreakdownNumericUnit =
       mainThreadWorkBreakdownData.numericUnit;
-    entity.mainThreadWorkBreakdownItemsDuration =
-      mainThreadWorkBreakdownData.details.items.map(
-        (item: any) => item.duration,
-      );
-    entity.mainThreadWorkBreakdownItemsGroupLable =
-      mainThreadWorkBreakdownData.details.items.map(
-        (item: any) => item.groupLable,
-      );
-
+    entity.mainThreadWorkBreakdownItemsDuration = [];
+    const items = mainThreadWorkBreakdownData.details.items;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      entity.mainThreadWorkBreakdownItemsDuration.push(item.duration);
+    }
+    entity.mainThreadWorkBreakdownItemsGroupLabel = [];
+    const group = mainThreadWorkBreakdownData.details.items;
+    for (let i = 0; i < group.length; i++) {
+      const item = group[i];
+      entity.mainThreadWorkBreakdownItemsGroupLabel.push(item.groupLabel);
+    }
     // Unused CSS Rules Data
-    entity.unusedCssRulesItems = unusedCssRulesData.details.items.map(
-      (item: any) => item.url,
-    );
+    entity.unusedCssRulesItems = [];
+    const cssdata = unusedCssRulesData.details.items;
+    for (let i = 0; i < cssdata.length; i++) {
+      const item = cssdata[i];
+      entity.unusedCssRulesItems.push(item);
+    }
 
     // Speed Index Data
     entity.speedIndexScore = speedIndexData.score;
     entity.speedIndexDisplayValue = speedIndexData.displayValue;
+    entity.speedIndexNumericValue = speedIndexData.numericValue;
+    entity.speedIndexNumericUnit = speedIndexData.numericUnit;
 
     // Third Party Summary Data
     entity.thirdPartySummaryDisplayValue = thirdPartySummaryData.displayValue;
-    entity.thirdPartySummaryItemsUrl =
-      thirdPartySummaryData.details.items.flatMap(
-        (item: IThirdPartySummaryDetailsItem) => {
-          // Check if subItems exists and is an array
-          if (item.subItems && Array.isArray(item.subItems)) {
-            // Mapping top-level items
-            return item.subItems.flatMap(
-              (subItem: IThirdPartySummaryDetailsItemSubItem) => {
-                // Mapping subitems
-                return [
-                  {
-                    url: subItem.items.url,
-                  },
-                ];
-              },
-            );
-          } else {
-            return [];
-          }
-        },
-      );
-    // entity.thirdPartySummaryItemsTransfer =
-    //   thirdPartySummaryData.details.items.map((item: any) => item.transferSize);
-    // entity.thirdPartySummaryItemsMainThred =
-    //   thirdPartySummaryData.details.items.map(
-    //     (item: any) => item.mainThreadTime,
-    //   );
-    // entity.thirdPartySummaryItemsBlockingTime =
-    //   thirdPartySummaryData.details.items.map((item: any) => item.blockingTime);
+    if (
+      thirdPartySummaryData &&
+      thirdPartySummaryData.detail &&
+      thirdPartySummaryData.detail.items
+    ) {
+      entity.thirdPartySummaryItemsUrl = [];
+      for (let i = 0; i < thirdPartySummaryData.details.items.length; i++) {
+        const item = thirdPartySummaryData.details.items[i];
+        for (let j = 0; j < item.subItems.items.length; j++) {
+          const subItem = item.subItems.items[j];
+          entity.thirdPartySummaryItemsUrl.push(subItem.url);
+        }
+      }
+    }
+    if (
+      thirdPartySummaryData &&
+      thirdPartySummaryData.details &&
+      thirdPartySummaryData.details.items
+    ) {
+      entity.thirdPartySummaryItemsTransfer = [];
+      for (let i = 0; i < thirdPartySummaryData.details.items.length; i++) {
+        const item = thirdPartySummaryData.details.items[i];
+        for (let j = 0; j < item.subItems.items.length; j++) {
+          const subItem = item.subItems.items[j];
+          entity.thirdPartySummaryItemsTransfer.push(subItem.transferSize);
+        }
+      }
+    }
+
+    if (
+      thirdPartySummaryData &&
+      thirdPartySummaryData.details &&
+      thirdPartySummaryData.details.items
+    ) {
+      entity.thirdPartySummaryItemsMainThred = [];
+      for (let i = 0; i < thirdPartySummaryData.details.items.length; i++) {
+        const item = thirdPartySummaryData.details.items[i];
+        for (let j = 0; j < item.subItems.items.length; j++) {
+          const subItem = item.subItems.items[j];
+          entity.thirdPartySummaryItemsMainThred.push(subItem.mainThreadTime);
+        }
+      }
+    }
+
+    if (
+      thirdPartySummaryData &&
+      thirdPartySummaryData.details &&
+      thirdPartySummaryData.details.items
+    ) {
+      entity.thirdPartySummaryItemsBlockingTime = [];
+      for (let i = 0; i < thirdPartySummaryData.details.items.length; i++) {
+        const item = thirdPartySummaryData.details.items[i];
+        for (let j = 0; j < item.subItems.items.length; j++) {
+          const subItem = item.subItems.items[j];
+          entity.thirdPartySummaryItemsBlockingTime.push(subItem.blockingTime);
+        }
+      }
+    }
 
     // Total Byte Weight Data
-    // entity.totalByteWeightScore = totalByteWeightData.score;
-    // entity.totalByteWeightDisplayValue = totalByteWeightData.displayValue;
-    // entity.totalByteWeightNumericValue = totalByteWeightData.numericValue;
-    // entity.totalByteWeightNumericUnit = totalByteWeightData.numericUnit;
-    // entity.totalByteWeightItemsUrl = totalByteWeightData.details.items.map(
-    //   (item: any) => item.url,
-    // );
-    // entity.totalByteWeightItemsTotalBytes =
-    //   totalByteWeightData.details.items.map((item: any) => item.totalBytes);
+    entity.totalByteWeightScore = totalByteWeightData.score;
+    entity.totalByteWeightDisplayValue = totalByteWeightData.displayValue;
+    entity.totalByteWeightNumericValue = totalByteWeightData.numericValue;
+    entity.totalByteWeightNumericUnit = totalByteWeightData.numericUnit;
+    entity.totalByteWeightItemsUrl = [];
+    const byteUrl = totalByteWeightData.details.items;
+    for (let i = 0; i < byteUrl.length; i++) {
+      const item = byteUrl[i];
+      entity.totalByteWeightItemsUrl.push(item.url);
+    }
+    entity.totalByteWeightItemsTotalBytes = [];
+    const totalByte = totalByteWeightData.details.items;
+    for (let i = 0; i < totalByte.length; i++) {
+      const item = totalByte[i];
+      entity.totalByteWeightItemsUrl.push(item.url);
+    }
 
     // Total Blocking Time Data
-    // entity.totalBlockingTimeScore = totalBlockingTimeData.score;
-    // entity.totalBlockingTimeDisplayValue = totalBlockingTimeData.displayValue;
-    // entity.totalBlockingTimeNumericValue = totalBlockingTimeData.numericValue;
-    // entity.totalBlockingTimeNumericUnit = totalBlockingTimeData.numericUnit;
+    entity.totalBlockingTimeScore = totalBlockingTimeData.score;
+    entity.totalBlockingTimeDisplayValue = totalBlockingTimeData.displayValue;
+    entity.totalBlockingTimeNumericValue = totalBlockingTimeData.numericValue;
+    entity.totalBlockingTimeNumericUnit = totalBlockingTimeData.numericUnit;
 
     // Time To Interactive Data
-    // entity.timeToInteractiveScore = timeToInteractiveData.score;
-    // entity.timeToInteractiveDisplayValue = timeToInteractiveData.displayValue;
-    // entity.timeToInteractiveNumericValue = timeToInteractiveData.numericValue;
-    // entity.timeToInteractiveNumericUnit = timeToInteractiveData.numericUnit;
+    entity.timeToInteractiveScore = timeToInteractiveData.score;
+    entity.timeToInteractiveDisplayValue = timeToInteractiveData.displayValue;
+    entity.timeToInteractiveNumericValue = timeToInteractiveData.numericValue;
+    entity.timeToInteractiveNumericUnit = timeToInteractiveData.numericUnit;
 
     // DOM Size Data
-    // entity.domSizeScore = domSizeData.score;
-    // entity.domSizeDisplayValue = domSizeData.displayValue;
-    // entity.domSizeNumericValue = domSizeData.numericValue;
-    // entity.domSizeNumericUnit = domSizeData.numericUnit;
+    entity.domSizeScore = domSizeData.score;
+    entity.domSizeDisplayValue = domSizeData.displayValue;
+    entity.domSizeNumericValue = domSizeData.numericValue;
+    entity.domSizeNumericUnit = domSizeData.numericUnit;
 
     await this.pageSpeedEntity.save(entity);
   }

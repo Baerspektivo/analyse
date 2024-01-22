@@ -20,7 +20,7 @@ export interface IMainThreadWorkBreakdownDetailsHeading {
   granularity?: number;
 }
 export interface IMainThreadWorkBreakdownDetailsItem {
-  groupLable: string;
+  groupLabel: string;
   group: string;
   duration: number;
 }
