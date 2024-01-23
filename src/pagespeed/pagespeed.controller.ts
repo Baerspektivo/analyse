@@ -1,28 +1,48 @@
-import { Body, Controller, HttpException, Post } from '@nestjs/common';
+import { Body, Controller, Post, Get, Query, Res } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { plainToClass } from 'class-transformer';
+import { Response } from 'express';
+import { Like, Repository } from 'typeorm';
+import { PageSpeedData } from './entities/pagespeeddata.entity';
 import { PagespeedService } from './pagespeed.service';
 
 @Controller('pagespeed')
 export class PagespeedController {
-  constructor(private readonly pageSpeedService: PagespeedService) {}
+  constructor(
+    private readonly pageSpeedService: PagespeedService,
+    @InjectRepository(PageSpeedData)
+    private pageSpeedDataRepository: Repository<PageSpeedData>,
+  ) {}
 
   @Post()
   async getPageSpeedResult(@Body() body: any): Promise<any> {
-    try {
-      let url = body.url;
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        url = 'https://' + url;
-      }
-      const encodedUrl = encodeURI(body.url);
-      const expression = new RegExp(
-        /[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?/gi,
+    const url = body.url;
+    return await this.pageSpeedService.getPageSpeedResult(url);
+  }
+
+  @Get()
+  async handleRequest(
+    @Query('url') url: string,
+    @Query('mode') mode: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    url = url.replace(/^https:\/\/|\/$/g, '');
+    const entities = await this.pageSpeedDataRepository.find({
+      where: { url: Like(`%${url}%`) },
+    });
+    if (!entities) {
+      res.status(404).send();
+      return;
+    }
+    if (mode === '') {
+      const data = entities.map((entity) =>
+        plainToClass(PageSpeedData, entity),
       );
-      if (!body.url || body.url === '' || body.url.match(expression) === null) {
-        throw new HttpException('Bad Request', 400);
-      }
-      return await this.pageSpeedService.getPageSpeedResult(encodedUrl);
-    } catch (error) {
-      console.log('Error', error);
-      throw new HttpException('Invalid URL parameter', 400);
+      res.send(data);
+    } else if (mode === 'full') {
+      res.send(entities);
+    } else {
+      res.status(400).send('Invalid mode');
     }
   }
 }

@@ -6,6 +6,9 @@ import { PagespeedModule } from './pagespeed/pagespeed.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PageSpeedData } from './pagespeed/entities/pagespeeddata.entity';
+import { CustomerModule } from './customer/customer.module';
+import { Customer } from './customer/entities/customer.entity';
+import { Website } from './customer/entities/website.entity';
 
 @Module({
   imports: [
@@ -26,11 +29,12 @@ import { PageSpeedData } from './pagespeed/entities/pagespeeddata.entity';
         username: configService.get<string>('DB_USER'),
         password: configService.get<string>('PASSWORD'),
         database: configService.get<string>('DATABASE'),
-        entities: [PageSpeedData],
+        entities: [PageSpeedData, Customer, Website],
         synchronize: true,
         logging: true,
       }),
     }),
+    CustomerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

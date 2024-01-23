@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { HttpService } from '@nestjs/axios';
@@ -6,6 +6,7 @@ import { PageSpeedData } from './entities/pagespeeddata.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
+import { HttpException } from '@nestjs/common';
 
 @Injectable()
 export class PagespeedService {
@@ -18,41 +19,93 @@ export class PagespeedService {
 
   API_KEY = this.configService.get<string>('API_KEY');
   //Request with URL and API Key to Google Lighthouse
-  async pageSpeedRequest(url?: string): Promise<any> {
-    console.log('URL:', url);
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      console.log('URLs StartsWith:', url);
-      const response$ = this.httpService
-        .get(
-          `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${url}&key=${this.API_KEY}`,
-        )
-        .pipe(map((response) => response.data));
-      const data = await firstValueFrom(response$);
-      return data;
-    } else {
-      try {
-        const urlToTry = 'https://' + url;
-        console.log('URL Trying:', urlToTry);
-        const response$ = this.httpService
-          .get(
-            `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${urlToTry}&key=${this.API_KEY}`,
-          )
-          .pipe(map((response) => response.data));
-        const data = await firstValueFrom(response$);
-        return data;
-      } catch (error) {
-        const urlToTry = 'http://' + url;
-        console.log('URL Trying:', urlToTry);
-        const response$ = this.httpService
-          .get(
-            `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${urlToTry}&key=${this.API_KEY}`,
-          )
-          .pipe(map((response) => response.data));
-        const data = await firstValueFrom(response$);
-        return data;
-      }
+
+  // async urlCheck(url: string): Promise<any> {
+  //   console.log('CHECK URL:', url);
+  //   if (!url.startsWith('http://') && !url.startsWith('https://')) {
+  //     url = 'https://' + url;
+  //   }
+  //   const encodedUrl = encodeURI(url);
+  //   const expression = new RegExp(
+  //     /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?\/[a-zA-Z0-9]{2,}|((https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?)|(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})?/g,
+  //   );
+  //   if (!url || url === '' || url.match(expression) === null) {
+  //     throw new HttpException('Bad Request', 400);
+  //   }
+  //   return encodedUrl;
+  // }
+
+  async pageSpeedRequest(url: string): Promise<any> {
+    console.log('CHECK URL:', url);
+    if (!url.startsWith('https://') && !url.startsWith('http://')) {
+      url = 'https://' + url;
     }
+    const expression = new RegExp(
+      /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?\/[a-zA-Z0-9]{2,}|((https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?)|(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})?/g,
+    );
+    if (!url || url === '' || url.match(expression) === null) {
+      throw new HttpException('Bad Request', 400);
+    }
+    const encodedUrl = encodeURI(url);
+    const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodedUrl}&key=${this.API_KEY}`;
+    const response$ = this.httpService
+      .get(apiUrl)
+      .pipe(map((response) => response.data));
+    console.log('RESPONSE:', encodedUrl);
+    const data = await firstValueFrom(response$);
+    return data;
   }
+  // async pageSpeedRequest(url: string): Promise<any> {
+  //   const formatterUrl = await this.urlCheck(url);
+  //   const protocol = formatterUrl.startsWith('http://')
+  //     ? 'http://'
+  //     : 'https://';
+  //   const apiUrl = `httpService://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${protocol}${formatterUrl}&key=${this.API_KEY}`;
+  //   const response$ = this.httpService
+  //     .get(apiUrl)
+  //     .pipe(map((response) => response.data));
+  //   const data = await firstValueFrom(response$);
+  //   return data;
+  // }
+  // async pageSpeedRequest(url?: string): Promise<any> {
+  //   const formatterUrl = await this.urlCheck(url);
+  //   console.log('URL:', formatterUrl);
+  //   if (
+  //     formatterUrl.startsWith('http://') ||
+  //     formatterUrl.startsWith('https://')
+  //   ) {
+  //     console.log('URLs StartsWith:', formatterUrl);
+  //     const response$ = this.httpService
+  //       .get(
+  //         `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${formatterUrl}&key=${this.API_KEY}`,
+  //       )
+  //       .pipe(map((response) => response.data));
+  //     const data = await firstValueFrom(response$);
+  //     return data;
+  //   } else {
+  //     try {
+  //       const urlToTry = 'https://' + formatterUrl;
+  //       console.log('URL Trying:', urlToTry);
+  //       const response$ = this.httpService
+  //         .get(
+  //           `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${formatterUrl}&key=${this.API_KEY}`,
+  //         )
+  //         .pipe(map((response) => response.data));
+  //       const data = await firstValueFrom(response$);
+  //       return data;
+  //     } catch (error) {
+  //       const urlToTry = 'http://' + formatterUrl;
+  //       console.log('URL Trying:', urlToTry);
+  //       const response$ = this.httpService
+  //         .get(
+  //           `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${formatterUrl}&key=${this.API_KEY}`,
+  //         )
+  //         .pipe(map((response) => response.data));
+  //       const data = await firstValueFrom(response$);
+  //       return data;
+  //     }
+  //   }
+  // }
 
   async getPageSpeedResult(url: string): Promise<void> {
     const data = await this.pageSpeedRequest(url);
@@ -75,6 +128,9 @@ export class PagespeedService {
       data.lighthouseResult.audits['total-blocking-time'];
     const timeToInteractiveData = data.lighthouseResult.audits['interactive'];
     const domSizeData = data.lighthouseResult.audits['dom-size'];
+    const largestContentfulPaintData =
+      data.lighthouseResult.audits['largest-contentful-paint'];
+
     // Create new entity and save to database
     const entity = new PageSpeedData();
 
@@ -119,6 +175,15 @@ export class PagespeedService {
       const item = group[i];
       entity.mainThreadWorkBreakdownItemsGroupLabel.push(item.groupLabel);
     }
+    // Largest Contentful Paint Data
+    entity.largestContentfulPaintScore = largestContentfulPaintData.score;
+    entity.largestContentfulPaintDisplayValue =
+      largestContentfulPaintData.displayValue;
+    entity.largestContentfulPaintNumericValue =
+      largestContentfulPaintData.numericValue;
+    entity.largestContentfulPaintNumericUnit =
+      largestContentfulPaintData.numericUnit;
+
     // Unused CSS Rules Data
     entity.unusedCssRulesItems = [];
     const cssdata = unusedCssRulesData.details.items;
@@ -135,6 +200,7 @@ export class PagespeedService {
 
     // Third Party Summary Data
     entity.thirdPartySummaryDisplayValue = thirdPartySummaryData.displayValue;
+    // Third Party Summary Url
     if (
       thirdPartySummaryData &&
       thirdPartySummaryData.detail &&
@@ -149,6 +215,7 @@ export class PagespeedService {
         }
       }
     }
+    // Third Party Summary Transfer Size
     if (
       thirdPartySummaryData &&
       thirdPartySummaryData.details &&
@@ -163,7 +230,7 @@ export class PagespeedService {
         }
       }
     }
-
+    // Third Party Summary Main Thread Time
     if (
       thirdPartySummaryData &&
       thirdPartySummaryData.details &&
@@ -178,7 +245,7 @@ export class PagespeedService {
         }
       }
     }
-
+    // Third Party Summary Blocking Time
     if (
       thirdPartySummaryData &&
       thirdPartySummaryData.details &&

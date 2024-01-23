@@ -1,10 +1,13 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { Exclude } from 'class-transformer';
+import { Website } from 'src/customer/entities/website.entity';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class PageSpeedData {
@@ -20,6 +23,10 @@ export class PageSpeedData {
   @ApiProperty()
   createdAt: Date;
 
+  @JoinColumn({ name: 'urlId' })
+  website: Website;
+
+  @Exclude()
   @Column('json')
   @ApiProperty({ type: () => [String] })
   lighthouseObjet: string[];
@@ -71,38 +78,6 @@ export class PageSpeedData {
   @Column('json')
   @ApiProperty({ type: () => [Number] })
   mainThreadWorkBreakdownItemsDuration: number[];
-  //
-  // @Column()
-  // @ApiProperty()
-  // comulativeLayoutShiftScore: string;
-  //
-  // @Column()
-  // @ApiProperty()
-  // comulativeLayoutShiftDisplayValue: string;
-  //
-  // @Column()
-  // @ApiProperty()
-  // critialRequestChainsDisplayValue: string;
-  //
-  // @Column()
-  // @ApiProperty()
-  // serverResponseTimeScore: string;
-  //
-  // @Column()
-  // @ApiProperty()
-  // serverResponseTimeDisplayValue: string;
-  //
-  // @Column()
-  // @ApiProperty()
-  // serverResponseTimeNumericValue: string;
-  //
-  // @Column()
-  // @ApiProperty()
-  // serverResponseTimeNumericUnit: string;
-  //
-  // @Column()
-  // @ApiProperty()
-  // pageSpeedScore: string;
 
   @Column()
   @ApiProperty()
@@ -120,22 +95,22 @@ export class PageSpeedData {
   @ApiProperty()
   speedIndexNumericUnit: string;
 
-  // @Column()
-  // @ApiProperty()
-  // largestContentfulPaintScore: string;
-  //
-  // @Column()
-  // @ApiProperty()
-  // largestContentfulPaintDisplayValue: string;
-  //
-  // @Column()
-  // @ApiProperty()
-  // largestContentfulPaintNumericValue: string;
-  //
-  // @Column()
-  // @ApiProperty()
-  // largestContentfulPaintNumericUnit: string;
-  //
+  @Column()
+  @ApiProperty()
+  largestContentfulPaintScore: string;
+
+  @Column()
+  @ApiProperty()
+  largestContentfulPaintDisplayValue: string;
+
+  @Column()
+  @ApiProperty()
+  largestContentfulPaintNumericValue: string;
+
+  @Column()
+  @ApiProperty()
+  largestContentfulPaintNumericUnit: string;
+
   @Column()
   @ApiProperty()
   totalBlockingTimeScore: string;
@@ -216,26 +191,6 @@ export class PageSpeedData {
   @ApiProperty({ type: () => [Number] })
   totalByteWeightItemsTotalBytes: number[];
 
-  // @Column()
-  // @ApiProperty()
-  // networkRequestsItemUrl: string;
-  //
-  // @Column()
-  // @ApiProperty()
-  // networkRequestsItemRequestTime: string;
-  //
-  // @Column()
-  // @ApiProperty()
-  // bootupTimeDisplayValue: string;
-  //
-  // @Column()
-  // @ApiProperty()
-  // bootupTimeNumericValue: string;
-  //
-  // @Column()
-  // @ApiProperty()
-  // bootupTimeNumericUnit: string;
-  //
   @Column({ nullable: true })
   @ApiProperty()
   domSizeScore: number | null;

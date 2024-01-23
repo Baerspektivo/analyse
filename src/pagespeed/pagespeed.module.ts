@@ -5,12 +5,14 @@ import { HttpModule } from '@nestjs/axios';
 import { PageSpeedData } from './entities/pagespeeddata.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { Customer } from '../customer/entities/customer.entity';
+import { Website } from '../customer/entities/website.entity';
 
 @Module({
   imports: [
     HttpModule,
     ConfigModule,
-    TypeOrmModule.forFeature([PageSpeedData]),
+    TypeOrmModule.forFeature([PageSpeedData, Customer, Website]),
   ],
   controllers: [PagespeedController],
   providers: [PagespeedService],
