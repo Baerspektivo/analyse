@@ -1,14 +1,17 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { HttpModule } from '@nestjs/axios';
-import { PagespeedModule } from './pagespeed/pagespeed.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { PageSpeedData } from './pagespeed/entities/pagespeeddata.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { CustomerController } from './customer/customer.controller';
 import { CustomerModule } from './customer/customer.module';
+import { CustomerService } from './customer/customer.service';
 import { Customer } from './customer/entities/customer.entity';
-import { Website } from './customer/entities/website.entity';
+import { PageSpeedData } from './pagespeed/entities/pagespeeddata.entity';
+import { PagespeedModule } from './pagespeed/pagespeed.module';
+import { PagespeedService } from './pagespeed/pagespeed.service';
+import { Website } from './website/entities/website.entity';
+import { WebsiteController } from './website/website.controller';
+import { WebsiteService } from './website/website.service';
 
 @Module({
   imports: [
@@ -36,7 +39,7 @@ import { Website } from './customer/entities/website.entity';
     }),
     CustomerModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [CustomerController, WebsiteController],
+  providers: [CustomerService, WebsiteService, PagespeedService, ConfigService],
 })
 export class AppModule {}

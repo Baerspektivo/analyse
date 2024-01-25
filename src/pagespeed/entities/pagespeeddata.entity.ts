@@ -1,29 +1,28 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
-import { Website } from 'src/customer/entities/website.entity';
+import { Website } from '../../website/entities/website.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
   PrimaryGeneratedColumn,
+  ManyToOne,
 } from 'typeorm';
 
 @Entity()
 export class PageSpeedData {
   @PrimaryGeneratedColumn('uuid')
   @ApiProperty()
-  id: string;
-
-  @Column()
-  @ApiProperty()
-  url: string;
+  speedTestId: string;
 
   @CreateDateColumn()
   @ApiProperty()
   createdAt: Date;
 
-  @JoinColumn({ name: 'urlId' })
+  @ManyToOne(() => Website, (website) => website.pageSpeedDatas)
+  @JoinColumn({ name: 'websiteId' })
+  @ApiProperty()
   website: Website;
 
   @Exclude()

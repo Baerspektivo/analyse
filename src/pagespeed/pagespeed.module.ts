@@ -1,20 +1,21 @@
-import { Module } from '@nestjs/common';
-import { PagespeedService } from './pagespeed.service';
-import { PagespeedController } from './pagespeed.controller';
 import { HttpModule } from '@nestjs/axios';
-import { PageSpeedData } from './entities/pagespeeddata.entity';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { Customer } from '../customer/entities/customer.entity';
-import { Website } from '../customer/entities/website.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { PageSpeedData } from './entities/pagespeeddata.entity';
+import { PagespeedController } from './pagespeed.controller';
+import { PagespeedService } from './pagespeed.service';
+import { WebsiteModule } from 'src/website/website.module';
 
 @Module({
   imports: [
     HttpModule,
     ConfigModule,
-    TypeOrmModule.forFeature([PageSpeedData, Customer, Website]),
+    WebsiteModule,
+    TypeOrmModule.forFeature([PageSpeedData]),
   ],
   controllers: [PagespeedController],
   providers: [PagespeedService],
+  exports: [PagespeedService],
 })
 export class PagespeedModule {}

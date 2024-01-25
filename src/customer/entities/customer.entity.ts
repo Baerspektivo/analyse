@@ -1,23 +1,27 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail } from 'class-validator';
-import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
-import { Website } from './website.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Website } from '../../website/entities/website.entity';
 
 @Entity()
 export class Customer {
-  @PrimaryColumn('uuid')
+  @PrimaryGeneratedColumn('uuid')
   @ApiProperty()
   customerId: string;
 
-  @Column()
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @ApiProperty()
+  createdAt: Date;
+
+  @Column({ nullable: false })
   @ApiProperty()
   firstName: string;
 
-  @Column()
+  @Column({ nullable: false })
   @ApiProperty()
   lastName: string;
 
-  @Column()
+  @Column({ nullable: false })
   @ApiProperty()
   @IsEmail()
   email: string;

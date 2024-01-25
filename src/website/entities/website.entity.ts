@@ -1,7 +1,7 @@
 import {
   Entity,
   OneToMany,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -12,9 +12,9 @@ import { Customer } from '../../customer/entities/customer.entity';
 
 @Entity()
 export class Website {
-  @PrimaryColumn('uuid')
+  @PrimaryGeneratedColumn('uuid')
   @ApiProperty()
-  urlId: string;
+  websiteId: string;
 
   @Column()
   @ApiProperty()
@@ -25,11 +25,11 @@ export class Website {
   @ApiProperty()
   customer: Customer;
 
+  @Column({ nullable: true })
+  @ApiProperty()
+  url: string;
+
   @OneToMany(() => PageSpeedData, (pageSpeedData) => pageSpeedData.website)
   @ApiProperty()
   pageSpeedDatas: PageSpeedData[];
-
-  @Column()
-  @ApiProperty()
-  url: string;
 }

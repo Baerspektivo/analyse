@@ -1,40 +1,25 @@
-import { Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { HttpException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { HttpService } from '@nestjs/axios';
-import { PageSpeedData } from './entities/pagespeeddata.entity';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ConfigService } from '@nestjs/config';
-import { HttpException } from '@nestjs/common';
+import { PageSpeedData } from './entities/pagespeeddata.entity';
+import { WebsiteService } from '../website/website.service';
 
 @Injectable()
 export class PagespeedService {
   constructor(
-    private httpService: HttpService,
-    private configService: ConfigService,
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+    private readonly websiteService: WebsiteService,
     @InjectRepository(PageSpeedData)
-    private pageSpeedEntity: Repository<PageSpeedData>,
+    private readonly pageSpeedEntity: Repository<PageSpeedData>,
   ) {}
 
   API_KEY = this.configService.get<string>('API_KEY');
   //Request with URL and API Key to Google Lighthouse
-
-  // async urlCheck(url: string): Promise<any> {
-  //   console.log('CHECK URL:', url);
-  //   if (!url.startsWith('http://') && !url.startsWith('https://')) {
-  //     url = 'https://' + url;
-  //   }
-  //   const encodedUrl = encodeURI(url);
-  //   const expression = new RegExp(
-  //     /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?\/[a-zA-Z0-9]{2,}|((https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?)|(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})?/g,
-  //   );
-  //   if (!url || url === '' || url.match(expression) === null) {
-  //     throw new HttpException('Bad Request', 400);
-  //   }
-  //   return encodedUrl;
-  // }
-
   async pageSpeedRequest(url: string): Promise<any> {
     console.log('CHECK URL:', url);
     if (!url.startsWith('https://') && !url.startsWith('http://')) {
@@ -55,60 +40,18 @@ export class PagespeedService {
     const data = await firstValueFrom(response$);
     return data;
   }
-  // async pageSpeedRequest(url: string): Promise<any> {
-  //   const formatterUrl = await this.urlCheck(url);
-  //   const protocol = formatterUrl.startsWith('http://')
-  //     ? 'http://'
-  //     : 'https://';
-  //   const apiUrl = `httpService://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${protocol}${formatterUrl}&key=${this.API_KEY}`;
-  //   const response$ = this.httpService
-  //     .get(apiUrl)
-  //     .pipe(map((response) => response.data));
-  //   const data = await firstValueFrom(response$);
-  //   return data;
-  // }
-  // async pageSpeedRequest(url?: string): Promise<any> {
-  //   const formatterUrl = await this.urlCheck(url);
-  //   console.log('URL:', formatterUrl);
-  //   if (
-  //     formatterUrl.startsWith('http://') ||
-  //     formatterUrl.startsWith('https://')
-  //   ) {
-  //     console.log('URLs StartsWith:', formatterUrl);
-  //     const response$ = this.httpService
-  //       .get(
-  //         `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${formatterUrl}&key=${this.API_KEY}`,
-  //       )
-  //       .pipe(map((response) => response.data));
-  //     const data = await firstValueFrom(response$);
-  //     return data;
-  //   } else {
-  //     try {
-  //       const urlToTry = 'https://' + formatterUrl;
-  //       console.log('URL Trying:', urlToTry);
-  //       const response$ = this.httpService
-  //         .get(
-  //           `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${formatterUrl}&key=${this.API_KEY}`,
-  //         )
-  //         .pipe(map((response) => response.data));
-  //       const data = await firstValueFrom(response$);
-  //       return data;
-  //     } catch (error) {
-  //       const urlToTry = 'http://' + formatterUrl;
-  //       console.log('URL Trying:', urlToTry);
-  //       const response$ = this.httpService
-  //         .get(
-  //           `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${formatterUrl}&key=${this.API_KEY}`,
-  //         )
-  //         .pipe(map((response) => response.data));
-  //       const data = await firstValueFrom(response$);
-  //       return data;
-  //     }
-  //   }
-  // }
 
-  async getPageSpeedResult(url: string): Promise<void> {
+  async getPageSpeedResult(url: string, websiteId: string): Promise<void> {
     const data = await this.pageSpeedRequest(url);
+
+    // Create new PageSpeedData entity
+    const entity = new PageSpeedData();
+
+    const website = await this.websiteService.getWebsiteById(websiteId);
+    if (!website) {
+      throw new Error(`Website with WebsiteID ${websiteId} not found`);
+    }
+    entity.website = website;
 
     // Datas from pagespeed request
     const mainLighthouseObjet = data.lighthouseResult;
@@ -131,12 +74,8 @@ export class PagespeedService {
     const largestContentfulPaintData =
       data.lighthouseResult.audits['largest-contentful-paint'];
 
-    // Create new entity and save to database
-    const entity = new PageSpeedData();
-
-    // Save customer url
+    // Save howl object
     entity.lighthouseObjet = mainLighthouseObjet;
-    entity.url = url;
 
     // First Contentful Paint Data
     entity.firstContentfulPaintScore = firstContentfulPaintData.score;
@@ -298,5 +237,10 @@ export class PagespeedService {
     entity.domSizeNumericUnit = domSizeData.numericUnit;
 
     await this.pageSpeedEntity.save(entity);
+  }
+  async getPageSpeedsByWebsiteId(websiteId: string): Promise<PageSpeedData[]> {
+    return this.pageSpeedEntity.find({
+      where: { website: { websiteId: websiteId } },
+    });
   }
 }
