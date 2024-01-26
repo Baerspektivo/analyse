@@ -32,7 +32,13 @@ export class CustomerService {
     return customer;
   }
 
-  getAllCustomers(): Promise<Customer[]> {
+  async getAllCustomers(): Promise<Customer[]> {
     return this.customerRepository.find();
+  }
+  async getCustomerById(id: string): Promise<Customer> {
+    return this.customerRepository.findOne({ where: { customerId: id } });
+  }
+  async getCustomerByName(name: string): Promise<Customer> {
+    return this.customerRepository.findOne({ where: { firstName: name } });
   }
 }

@@ -23,7 +23,7 @@ export class WebsiteService {
     });
     if (!website) {
       website = new Website();
-      website.urlDisplayName = urlDisplayName;
+      website.displayName = urlDisplayName;
       website.url = url;
       const customer = await this.customerRepository.findOne({
         where: { customerId: customerId },
@@ -36,13 +36,21 @@ export class WebsiteService {
     }
     return website;
   }
+  async getAllWebsites(): Promise<Website[]> {
+    return this.websiteRepository.find();
+  }
   async getWebsiteById(id: Website['websiteId']): Promise<Website> {
     return this.websiteRepository.findOne({ where: { websiteId: id } });
   }
 
-  getAllWebsitesByCustomerId(customerId: string): Promise<Website[]> {
+  async getAllWebsitesByCustomerId(customerId: string): Promise<Website[]> {
     return this.websiteRepository.find({
       where: { customer: { customerId: customerId } },
+    });
+  }
+  async getWebsiteByDisplayName(displayName: string): Promise<Website> {
+    return this.websiteRepository.findOne({
+      where: { displayName: displayName },
     });
   }
 }

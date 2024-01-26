@@ -18,7 +18,7 @@ export class Website {
 
   @Column()
   @ApiProperty()
-  urlDisplayName: string;
+  displayName: string;
 
   @ManyToOne(() => Customer)
   @JoinColumn({ name: 'customerId' })
