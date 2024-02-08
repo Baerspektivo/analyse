@@ -57,7 +57,6 @@ export class CustomerController {
   findAll(): Promise<Customer[]> {
     return this.customerService.getAllCustomers();
   }
-
   @Get('id/:id')
   async findOneCustomerById(@Param('id') id: string): Promise<Customer> {
     return this.customerService.getCustomerById(id);
@@ -76,7 +75,7 @@ export class CustomerController {
   ): Promise<PageSpeedData[]> {
     return this.pageSpeedService.getPageSpeedsByWebsiteId(id);
   }
-  @Get('website/:displayName')
+  @Get('display/:displayName')
   async findOneWebsiteByDisplayName(
     @Param('displayName') displayName: string,
   ): Promise<Website> {

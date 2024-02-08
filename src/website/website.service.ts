@@ -42,7 +42,6 @@ export class WebsiteService {
   async getWebsiteById(id: Website['websiteId']): Promise<Website> {
     return this.websiteRepository.findOne({ where: { websiteId: id } });
   }
-
   async getAllWebsitesByCustomerId(customerId: string): Promise<Website[]> {
     return this.websiteRepository.find({
       where: { customer: { customerId: customerId } },
