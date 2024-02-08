@@ -6,9 +6,9 @@ import { PageSpeedData } from '../pagespeed/entities/pagespeeddata.entity';
 import { Website } from './entities/website.entity';
 import { WebsiteController } from './website.controller';
 import { WebsiteService } from './website.service';
-import { CustomerModule } from 'src/customer/customer.module';
+import { CustomerModule } from '../customer/customer.module';
 import { ConfigModule } from '@nestjs/config';
-import { PagespeedModule } from 'src/pagespeed/pagespeed.module';
+import { PagespeedModule } from '../pagespeed/pagespeed.module';
 
 @Module({
   imports: [

@@ -1,7 +1,7 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { WebsiteService } from './website.service';
-import { PagespeedService } from 'src/pagespeed/pagespeed.service';
-import { PageSpeedData } from 'src/pagespeed/entities/pagespeeddata.entity';
+import { PagespeedService } from '../pagespeed/pagespeed.service';
+import { PageSpeedData } from '../pagespeed/entities/pagespeeddata.entity';
 import { Website } from './entities/website.entity';
 
 @Controller('website')

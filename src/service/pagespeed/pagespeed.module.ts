@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PageSpeedData } from './entities/pagespeeddata.entity';
 import { PagespeedController } from './pagespeed.controller';
 import { PagespeedService } from './pagespeed.service';
-import { WebsiteModule } from 'src/website/website.module';
+import { WebsiteModule } from '../website/website.module';
 
 @Module({
   imports: [

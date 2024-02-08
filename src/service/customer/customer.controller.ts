@@ -1,11 +1,11 @@
 import { Body, Controller, Post, Res, Get, Param } from '@nestjs/common';
 import { Response } from 'express';
-import { PagespeedService } from 'src/pagespeed/pagespeed.service';
-import { WebsiteService } from 'src/website/website.service';
+import { PagespeedService } from '../pagespeed/pagespeed.service';
+import { WebsiteService } from '../website/website.service';
 import { CustomerService } from './customer.service';
 import { Customer } from './entities/customer.entity';
-import { Website } from 'src/website/entities/website.entity';
-import { PageSpeedData } from 'src/pagespeed/entities/pagespeeddata.entity';
+import { Website } from '../website/entities/website.entity';
+import { PageSpeedData } from '../pagespeed/entities/pagespeeddata.entity';
 
 @Controller('customer')
 export class CustomerController {
