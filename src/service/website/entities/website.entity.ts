@@ -14,7 +14,7 @@ import { Customer } from '../../customer/entities/customer.entity';
 export class Website {
   @PrimaryGeneratedColumn('uuid')
   @ApiProperty()
-  websiteId: string;
+  id: string;
 
   @Column()
   @ApiProperty()

@@ -1,11 +1,11 @@
 import { Body, Controller, Post, Res, Get, Param } from '@nestjs/common';
-import { Response } from 'express';
 import { PagespeedService } from '../pagespeed/pagespeed.service';
 import { WebsiteService } from '../website/website.service';
 import { CustomerService } from './customer.service';
 import { Customer } from './entities/customer.entity';
 import { Website } from '../website/entities/website.entity';
 import { PageSpeedData } from '../pagespeed/entities/pagespeeddata.entity';
+import { CreateCustomerDto } from './dto/create-customer.dto';
 
 @Controller('customer')
 export class CustomerController {
@@ -16,41 +16,10 @@ export class CustomerController {
   ) {}
 
   @Post()
-  async getPageSpeedResult(
-    @Body()
-    body: {
-      firstName: string;
-      lastName: string;
-      email: string;
-      displayName: string;
-      url: string;
-    },
-    @Res() res: Response,
-  ): Promise<any> {
-    const url = body.url;
-    const firstName = body.firstName;
-    const lastName = body.lastName;
-    const email = body.email;
-    const displayName = body.displayName;
-
-    // Create or update customer
-    const customer = await this.customerService.createOrUpdateCustomer(
-      firstName,
-      lastName,
-      email,
-    );
-
-    // Create or update website
-    const website = await this.websiteService.createOrUpdateWebsite(
-      displayName,
-      url,
-      customer.customerId, // assuming the customer object has an id property
-    );
-
-    // Get PageSpeed result
-    await this.pageSpeedService.getPageSpeedResult(url, website.websiteId); // assuming the website object has an id property
-
-    res.sendStatus(200);
+  async createCustomer(
+    @Body() createCustomerDto: CreateCustomerDto,
+  ): Promise<Customer> {
+    return this.customerService.createOrUpdateCustomer(createCustomerDto);
   }
 
   @Get('all')

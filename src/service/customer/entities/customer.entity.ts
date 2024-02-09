@@ -7,7 +7,7 @@ import { Website } from '../../website/entities/website.entity';
 export class Customer {
   @PrimaryGeneratedColumn('uuid')
   @ApiProperty()
-  customerId: string;
+  id: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   @ApiProperty()

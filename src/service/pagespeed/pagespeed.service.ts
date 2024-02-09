@@ -1,4 +1,5 @@
 import { HttpService } from '@nestjs/axios';
+import { convertDTOToEntity } from './pagespeed.utils';
 import { HttpException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,6 +8,7 @@ import { map } from 'rxjs/operators';
 import { Repository } from 'typeorm';
 import { PageSpeedData } from './entities/pagespeeddata.entity';
 import { WebsiteService } from '../website/website.service';
+import { CreatePageSpeedDto } from './dto/create-pagespeed.dto';
 
 @Injectable()
 export class PagespeedService {
@@ -45,13 +47,12 @@ export class PagespeedService {
     const data = await this.pageSpeedRequest(url);
 
     // Create new PageSpeedData entity
-    const entity = new PageSpeedData();
+    const pageSpeedDTO = new CreatePageSpeedDto();
 
     const website = await this.websiteService.getWebsiteById(websiteId);
     if (!website) {
       throw new Error(`Website with WebsiteID ${websiteId} not found`);
     }
-    entity.website = website;
 
     // Datas from pagespeed request
     const mainLighthouseObjet = data.lighthouseResult;
@@ -75,82 +76,83 @@ export class PagespeedService {
       data.lighthouseResult.audits['largest-contentful-paint'];
 
     // Save howl object
-    entity.lighthouseObjet = mainLighthouseObjet;
+    pageSpeedDTO.lighthouseObject = mainLighthouseObjet;
 
     // First Contentful Paint Data
-    entity.firstContentfulPaintScore = firstContentfulPaintData.score;
-    entity.firstContentfulPaintNumericValue =
+    pageSpeedDTO.firstContentfulPaintScore = firstContentfulPaintData.score;
+    pageSpeedDTO.firstContentfulPaintNumericValue =
       firstContentfulPaintData.numericUnit;
-    entity.firstContentfulPaintNumericValue =
+    pageSpeedDTO.firstContentfulPaintNumericValue =
       firstContentfulPaintData.numericValue;
-    entity.firstContentfulPaintDisplayValue =
+    pageSpeedDTO.firstContentfulPaintDisplayValue =
       firstContentfulPaintData.displayValue;
 
     // First Meaningful Paint Data
-    entity.firstMeaningfulPaintScore = firstMeaningfulPaintData.score;
-    entity.firstMeaningfulPaintNumericValue =
+    pageSpeedDTO.firstMeaningfulPaintScore = firstMeaningfulPaintData.score;
+    pageSpeedDTO.firstMeaningfulPaintNumericValue =
       firstMeaningfulPaintData.numericValue;
-    entity.firstMeaningfulPaintNumericUnit =
+    pageSpeedDTO.firstMeaningfulPaintNumericUnit =
       firstMeaningfulPaintData.numericUnit;
-    entity.firstMeaningfulPaintDisplayValue =
+    pageSpeedDTO.firstMeaningfulPaintDisplayValue =
       firstMeaningfulPaintData.displayValue;
 
     // Main Thread Work Breakdown Data
-    entity.mainThreadWorkBreakdownDisplayValue =
+    pageSpeedDTO.mainThreadWorkBreakdownDisplayValue =
       mainThreadWorkBreakdownData.displayValue;
-    entity.mainThreadWorkBreakdownNumricValue =
+    pageSpeedDTO.mainThreadWorkBreakdownNumricValue =
       mainThreadWorkBreakdownData.numericValue;
-    entity.mainThreadWorkBreakdownNumericUnit =
+    pageSpeedDTO.mainThreadWorkBreakdownNumericUnit =
       mainThreadWorkBreakdownData.numericUnit;
-    entity.mainThreadWorkBreakdownItemsDuration = [];
+    pageSpeedDTO.mainThreadWorkBreakdownItemsDuration = [];
     const items = mainThreadWorkBreakdownData.details.items;
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
-      entity.mainThreadWorkBreakdownItemsDuration.push(item.duration);
+      pageSpeedDTO.mainThreadWorkBreakdownItemsDuration.push(item.duration);
     }
-    entity.mainThreadWorkBreakdownItemsGroupLabel = [];
+    pageSpeedDTO.mainThreadWorkBreakdownItemsGroupLabel = [];
     const group = mainThreadWorkBreakdownData.details.items;
     for (let i = 0; i < group.length; i++) {
       const item = group[i];
-      entity.mainThreadWorkBreakdownItemsGroupLabel.push(item.groupLabel);
+      pageSpeedDTO.mainThreadWorkBreakdownItemsGroupLabel.push(item.groupLabel);
     }
     // Largest Contentful Paint Data
-    entity.largestContentfulPaintScore = largestContentfulPaintData.score;
-    entity.largestContentfulPaintDisplayValue =
+    pageSpeedDTO.largestContentfulPaintScore = largestContentfulPaintData.score;
+    pageSpeedDTO.largestContentfulPaintDisplayValue =
       largestContentfulPaintData.displayValue;
-    entity.largestContentfulPaintNumericValue =
+    pageSpeedDTO.largestContentfulPaintNumericValue =
       largestContentfulPaintData.numericValue;
-    entity.largestContentfulPaintNumericUnit =
+    pageSpeedDTO.largestContentfulPaintNumericUnit =
       largestContentfulPaintData.numericUnit;
 
     // Unused CSS Rules Data
-    entity.unusedCssRulesItems = [];
+    pageSpeedDTO.unusedCssRulesItems = [];
     const cssdata = unusedCssRulesData.details.items;
     for (let i = 0; i < cssdata.length; i++) {
       const item = cssdata[i];
-      entity.unusedCssRulesItems.push(item);
+      pageSpeedDTO.unusedCssRulesItems.push(item);
     }
 
     // Speed Index Data
-    entity.speedIndexScore = speedIndexData.score;
-    entity.speedIndexDisplayValue = speedIndexData.displayValue;
-    entity.speedIndexNumericValue = speedIndexData.numericValue;
-    entity.speedIndexNumericUnit = speedIndexData.numericUnit;
+    pageSpeedDTO.speedIndexScore = speedIndexData.score;
+    pageSpeedDTO.speedIndexDisplayValue = speedIndexData.displayValue;
+    pageSpeedDTO.speedIndexNumericValue = speedIndexData.numericValue;
+    pageSpeedDTO.speedIndexNumericUnit = speedIndexData.numericUnit;
 
     // Third Party Summary Data
-    entity.thirdPartySummaryDisplayValue = thirdPartySummaryData.displayValue;
+    pageSpeedDTO.thirdPartySummaryDisplayValue =
+      thirdPartySummaryData.displayValue;
     // Third Party Summary Url
     if (
       thirdPartySummaryData &&
       thirdPartySummaryData.detail &&
       thirdPartySummaryData.detail.items
     ) {
-      entity.thirdPartySummaryItemsUrl = [];
+      pageSpeedDTO.thirdPartySummaryItemsUrl = [];
       for (let i = 0; i < thirdPartySummaryData.details.items.length; i++) {
         const item = thirdPartySummaryData.details.items[i];
         for (let j = 0; j < item.subItems.items.length; j++) {
           const subItem = item.subItems.items[j];
-          entity.thirdPartySummaryItemsUrl.push(subItem.url);
+          pageSpeedDTO.thirdPartySummaryItemsUrl.push(subItem.url);
         }
       }
     }
@@ -160,12 +162,14 @@ export class PagespeedService {
       thirdPartySummaryData.details &&
       thirdPartySummaryData.details.items
     ) {
-      entity.thirdPartySummaryItemsTransfer = [];
+      pageSpeedDTO.thirdPartySummaryItemsTransfer = [];
       for (let i = 0; i < thirdPartySummaryData.details.items.length; i++) {
         const item = thirdPartySummaryData.details.items[i];
         for (let j = 0; j < item.subItems.items.length; j++) {
           const subItem = item.subItems.items[j];
-          entity.thirdPartySummaryItemsTransfer.push(subItem.transferSize);
+          pageSpeedDTO.thirdPartySummaryItemsTransfer.push(
+            subItem.transferSize,
+          );
         }
       }
     }
@@ -175,12 +179,14 @@ export class PagespeedService {
       thirdPartySummaryData.details &&
       thirdPartySummaryData.details.items
     ) {
-      entity.thirdPartySummaryItemsMainThred = [];
+      pageSpeedDTO.thirdPartySummaryItemsMainThred = [];
       for (let i = 0; i < thirdPartySummaryData.details.items.length; i++) {
         const item = thirdPartySummaryData.details.items[i];
         for (let j = 0; j < item.subItems.items.length; j++) {
           const subItem = item.subItems.items[j];
-          entity.thirdPartySummaryItemsMainThred.push(subItem.mainThreadTime);
+          pageSpeedDTO.thirdPartySummaryItemsMainThred.push(
+            subItem.mainThreadTime,
+          );
         }
       }
     }
@@ -190,57 +196,67 @@ export class PagespeedService {
       thirdPartySummaryData.details &&
       thirdPartySummaryData.details.items
     ) {
-      entity.thirdPartySummaryItemsBlockingTime = [];
+      pageSpeedDTO.thirdPartySummaryItemsBlockingTime = [];
       for (let i = 0; i < thirdPartySummaryData.details.items.length; i++) {
         const item = thirdPartySummaryData.details.items[i];
         for (let j = 0; j < item.subItems.items.length; j++) {
           const subItem = item.subItems.items[j];
-          entity.thirdPartySummaryItemsBlockingTime.push(subItem.blockingTime);
+          pageSpeedDTO.thirdPartySummaryItemsBlockingTime.push(
+            subItem.blockingTime,
+          );
         }
       }
     }
 
     // Total Byte Weight Data
-    entity.totalByteWeightScore = totalByteWeightData.score;
-    entity.totalByteWeightDisplayValue = totalByteWeightData.displayValue;
-    entity.totalByteWeightNumericValue = totalByteWeightData.numericValue;
-    entity.totalByteWeightNumericUnit = totalByteWeightData.numericUnit;
-    entity.totalByteWeightItemsUrl = [];
+    pageSpeedDTO.totalByteWeightScore = totalByteWeightData.score;
+    pageSpeedDTO.totalByteWeightDisplayValue = totalByteWeightData.displayValue;
+    pageSpeedDTO.totalByteWeightNumericValue = totalByteWeightData.numericValue;
+    pageSpeedDTO.totalByteWeightNumericUnit = totalByteWeightData.numericUnit;
+    pageSpeedDTO.totalByteWeightItemsUrl = [];
     const byteUrl = totalByteWeightData.details.items;
     for (let i = 0; i < byteUrl.length; i++) {
       const item = byteUrl[i];
-      entity.totalByteWeightItemsUrl.push(item.url);
+      pageSpeedDTO.totalByteWeightItemsUrl.push(item.url);
     }
-    entity.totalByteWeightItemsTotalBytes = [];
+    pageSpeedDTO.totalByteWeightItemsTotalBytes = [];
     const totalByte = totalByteWeightData.details.items;
     for (let i = 0; i < totalByte.length; i++) {
       const item = totalByte[i];
-      entity.totalByteWeightItemsUrl.push(item.url);
+      pageSpeedDTO.totalByteWeightItemsUrl.push(item.url);
     }
 
     // Total Blocking Time Data
-    entity.totalBlockingTimeScore = totalBlockingTimeData.score;
-    entity.totalBlockingTimeDisplayValue = totalBlockingTimeData.displayValue;
-    entity.totalBlockingTimeNumericValue = totalBlockingTimeData.numericValue;
-    entity.totalBlockingTimeNumericUnit = totalBlockingTimeData.numericUnit;
+    pageSpeedDTO.totalBlockingTimeScore = totalBlockingTimeData.score;
+    pageSpeedDTO.totalBlockingTimeDisplayValue =
+      totalBlockingTimeData.displayValue;
+    pageSpeedDTO.totalBlockingTimeNumericValue =
+      totalBlockingTimeData.numericValue;
+    pageSpeedDTO.totalBlockingTimeNumericUnit =
+      totalBlockingTimeData.numericUnit;
 
     // Time To Interactive Data
-    entity.timeToInteractiveScore = timeToInteractiveData.score;
-    entity.timeToInteractiveDisplayValue = timeToInteractiveData.displayValue;
-    entity.timeToInteractiveNumericValue = timeToInteractiveData.numericValue;
-    entity.timeToInteractiveNumericUnit = timeToInteractiveData.numericUnit;
+    pageSpeedDTO.timeToInteractiveScore = timeToInteractiveData.score;
+    pageSpeedDTO.timeToInteractiveDisplayValue =
+      timeToInteractiveData.displayValue;
+    pageSpeedDTO.timeToInteractiveNumericValue =
+      timeToInteractiveData.numericValue;
+    pageSpeedDTO.timeToInteractiveNumericUnit =
+      timeToInteractiveData.numericUnit;
 
     // DOM Size Data
-    entity.domSizeScore = domSizeData.score;
-    entity.domSizeDisplayValue = domSizeData.displayValue;
-    entity.domSizeNumericValue = domSizeData.numericValue;
-    entity.domSizeNumericUnit = domSizeData.numericUnit;
+    pageSpeedDTO.domSizeScore = domSizeData.score;
+    pageSpeedDTO.domSizeDisplayValue = domSizeData.displayValue;
+    pageSpeedDTO.domSizeNumericValue = domSizeData.numericValue;
+    pageSpeedDTO.domSizeNumericUnit = domSizeData.numericUnit;
+
+    const entity = convertDTOToEntity(pageSpeedDTO, website);
 
     await this.pageSpeedEntity.save(entity);
   }
-  async getPageSpeedsByWebsiteId(websiteId: string): Promise<PageSpeedData[]> {
+  async getPageSpeedsByWebsiteId(id: string): Promise<PageSpeedData[]> {
     return this.pageSpeedEntity.find({
-      where: { website: { websiteId: websiteId } },
+      where: { website: { id: id } },
     });
   }
 }

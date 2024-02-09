@@ -25,7 +25,6 @@ export class ControllersController {
     private readonly websiteService: WebsiteService,
     private readonly pageSpeedService: PagespeedService,
   ) {}
-  @UseInterceptors(CurrentResultInterceptor)
   @Post()
   async getPageSpeedResult(
     @Body()
@@ -45,24 +44,64 @@ export class ControllersController {
     const displayName = body.displayName;
 
     // Create or update customer
-    const customer = await this.customerService.createOrUpdateCustomer(
+    const customer = await this.customerService.createOrUpdateCustomer({
       firstName,
       lastName,
       email,
-    );
+    });
 
     // Create or update website
-    const website = await this.websiteService.createOrUpdateWebsite(
+    const website = await this.websiteService.createOrUpdateWebsite({
       displayName,
       url,
-      customer.customerId, // assuming the customer object has an id property
-    );
+      customer: {
+        id: customer.id,
+      },
+    });
 
     // Get PageSpeed result
-    await this.pageSpeedService.getPageSpeedResult(url, website.websiteId); // assuming the website object has an id property
+    await this.pageSpeedService.getPageSpeedResult(url, website.id);
 
     res.sendStatus(200);
   }
+  // @UseInterceptors(CurrentResultInterceptor)
+  // @Post()
+  // async getPageSpeedResult(
+  //   @Body()
+  //   body: {
+  //     firstName: string;
+  //     lastName: string;
+  //     email: string;
+  //     displayName: string;
+  //     url: string;
+  //   },
+  //   @Res() res: Response,
+  // ): Promise<any> {
+  //   const url = body.url;
+  //   const firstName = body.firstName;
+  //   const lastName = body.lastName;
+  //   const email = body.email;
+  //   const displayName = body.displayName;
+  //
+  //   // Create or update customer
+  //   const customer = await this.customerService.createOrUpdateCustomer(
+  //     firstName,
+  //     lastName,
+  //     email,
+  //   );
+  //
+  //   // Create or update website
+  //   const website = await this.websiteService.createOrUpdateWebsite(
+  //     displayName,
+  //     url,
+  //     customer.id, // assuming the customer object has an id property
+  //   );
+  //
+  //   // Get PageSpeed result
+  //   await this.pageSpeedService.getPageSpeedResult(url, website.id); // assuming the website object has an id property
+  //
+  //   res.sendStatus(200);
+  // }
   @Get('all')
   findAll(): Promise<Customer[]> {
     return this.customerService.getAllCustomers();
