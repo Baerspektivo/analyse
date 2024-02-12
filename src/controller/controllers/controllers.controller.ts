@@ -1,18 +1,11 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Res,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Res } from '@nestjs/common';
 import { Response } from 'express';
-import { CurrentResultInterceptor } from 'src/interceptor/currentresult.interceptor';
 import { CustomerService } from 'src/service/customer/customer.service';
+import { CreateCustomerDto } from 'src/service/customer/dto/create-customer.dto';
 import { Customer } from 'src/service/customer/entities/customer.entity';
 import { PageSpeedData } from 'src/service/pagespeed/entities/pagespeeddata.entity';
 import { PagespeedService } from 'src/service/pagespeed/pagespeed.service';
+import { CreateWebsiteDto } from 'src/service/website/dto/create-website.dto';
 import { Website } from 'src/service/website/entities/website.entity';
 import { WebsiteService } from 'src/service/website/website.service';
 import { ControllersService } from './controllers.service';
@@ -27,43 +20,24 @@ export class ControllersController {
   ) {}
   @Post()
   async getPageSpeedResult(
-    @Body()
-    body: {
-      firstName: string;
-      lastName: string;
-      email: string;
-      displayName: string;
-      url: string;
-    },
+    @Body() createCustomerDto: CreateCustomerDto,
+    @Body() createWebsiteDto: CreateWebsiteDto,
     @Res() res: Response,
   ): Promise<any> {
-    const url = body.url;
-    const firstName = body.firstName;
-    const lastName = body.lastName;
-    const email = body.email;
-    const displayName = body.displayName;
-
     // Create or update customer
-    const customer = await this.customerService.createOrUpdateCustomer({
-      firstName,
-      lastName,
-      email,
-    });
+    const customer =
+      await this.customerService.createOrUpdateCustomer(createCustomerDto);
 
     // Create or update website
-    const website = await this.websiteService.createOrUpdateWebsite({
-      displayName,
-      url,
-      customer: {
-        id: customer.id,
-      },
-    });
+    const website =
+      await this.websiteService.createOrUpdateWebsite(createWebsiteDto);
 
     // Get PageSpeed result
-    await this.pageSpeedService.getPageSpeedResult(url, website.id);
+    await this.pageSpeedService.getPageSpeedResult(website.url, website.id);
 
     res.sendStatus(200);
   }
+
   // @UseInterceptors(CurrentResultInterceptor)
   // @Post()
   // async getPageSpeedResult(

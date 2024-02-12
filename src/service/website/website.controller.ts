@@ -1,8 +1,8 @@
-import { Controller, Get, Param } from '@nestjs/common';
-import { WebsiteService } from './website.service';
+import { Body, Controller, Post } from '@nestjs/common';
 import { PagespeedService } from '../pagespeed/pagespeed.service';
-import { PageSpeedData } from '../pagespeed/entities/pagespeeddata.entity';
+import { CreateWebsiteDto } from './dto/create-website.dto';
 import { Website } from './entities/website.entity';
+import { WebsiteService } from './website.service';
 
 @Controller('website')
 export class WebsiteController {
@@ -10,14 +10,20 @@ export class WebsiteController {
     private readonly websiteService: WebsiteService,
     private readonly pageSpeedService: PagespeedService,
   ) {}
-  @Get('all')
-  async getAllWebsites(): Promise<Website[]> {
-    return this.websiteService.getAllWebsites();
+  @Post()
+  async createWebsite(
+    @Body() createWebsiteDto: CreateWebsiteDto,
+  ): Promise<Website> {
+    return this.websiteService.createOrUpdateWebsite(createWebsiteDto);
   }
-  @Get(':id/pagespeed')
-  async getPageSpeedByWebsiteId(
-    @Param('id') id: string,
-  ): Promise<PageSpeedData[]> {
-    return this.pageSpeedService.getPageSpeedsByWebsiteId(id);
-  }
+  // @Get('all')
+  // async getAllWebsites(): Promise<Website[]> {
+  //   return this.websiteService.getAllWebsites();
+  // }
+  // @Get(':id/pagespeed')
+  // async getPageSpeedByWebsiteId(
+  //   @Param('id') id: string,
+  // ): Promise<PageSpeedData[]> {
+  //   return this.pageSpeedService.getPageSpeedsByWebsiteId(id);
+  // }
 }

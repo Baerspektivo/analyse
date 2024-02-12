@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Entity, Repository } from 'typeorm';
 import { Customer } from '../customer/entities/customer.entity';
 import { Website } from './entities/website.entity';
 import { CreateWebsiteDto } from './dto/create-website.dto';
@@ -13,33 +13,27 @@ export class WebsiteService {
     @InjectRepository(Website)
     private websiteRepository: Repository<Website>,
   ) {}
-  toEntity(dto: CreateWebsiteDto): Website {
-    const entity = new Website();
-    entity.url = dto.url;
-    entity.displayName = dto.displayName;
+
+  async createOrUpdateWebsite(dto: CreateWebsiteDto): Promise<Website> {
+    const entity = this.toEntity(dto);
+    await this.websiteRepository.save(entity);
     return entity;
   }
-  async createOrUpdateWebsite(dto: CreateWebsiteDto): Promise<Website> {
-    const website = await this.websiteRepository.findOne({
-      where: { url: dto.url },
-    });
-    if (!website) {
-      const newWebsite = this.websiteRepository.create();
-      newWebsite.url = dto.url;
-      newWebsite.displayName = dto.displayName;
-      const customer = await this.customerRepository.findOne({
-        where: { id: dto.customer.email },
-      });
-      if (!customer) {
-        throw new Error(
-          `Customer with CustomerID ${dto.customer.email} not found`,
-        );
-      }
-      newWebsite.customer = customer;
-      await this.websiteRepository.save(newWebsite);
-      return newWebsite;
+
+ async toEntity(dto: CreateWebsiteDto): Promise<Website> {
+    const entity = new Website();
+    entity.url = dto.url;
+    entity.displayName = dto.url;
+    const customer = await this.customerRepository.findOne(dto.customer.id);
+    if(!customer){
+      throw new Error(`Custinmer with ID ${dto.customer.id} not found`);
     }
-    return website;
+    entity.customer = customer;
+    entity.pageSpeedDatas = dto.pageSpeedDatas;
+    return entity;
+  }
+  async saveEntity(entity: Website): Promise<Website> {
+    return await this.websiteRepository.save(entity);
   }
   //   async createOrUpdateWebsite(
   //   urlDisplayName: string,

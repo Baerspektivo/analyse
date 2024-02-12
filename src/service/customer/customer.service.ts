@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Customer } from './entities/customer.entity';
 import { Website } from '../website/entities/website.entity';
 import { CreateCustomerDto } from './dto/create-customer.dto';
+import { Customer } from './entities/customer.entity';
 
 @Injectable()
 export class CustomerService {
@@ -14,28 +14,17 @@ export class CustomerService {
     private websiteRepository: Repository<Website>,
   ) {}
 
+  async createOrUpdateCustomer(dto: CreateCustomerDto): Promise<Customer> {
+    const entity = this.toEntity(dto);
+    await this.customerRepository.save(entity);
+    return entity;
+  }
   toEntity(dto: CreateCustomerDto): Customer {
     const entity = new Customer();
     entity.firstName = dto.firstName;
     entity.lastName = dto.lastName;
     entity.email = dto.email;
-    console.log('DTO CREATED');
     return entity;
-  }
-  async createOrUpdateCustomer(dto: CreateCustomerDto): Promise<Customer> {
-    const customer = await this.customerRepository.findOne({
-      where: { firstName: dto.firstName, lastName: dto.lastName },
-    });
-    if (!customer) {
-      const newCustomer = this.customerRepository.create();
-      console.log('HERE WE ARE');
-      newCustomer.firstName = dto.firstName;
-      newCustomer.lastName = dto.lastName;
-      newCustomer.email = dto.email;
-      await this.customerRepository.save(newCustomer);
-      return newCustomer;
-    }
-    return customer;
   }
   // async createOrUpdateCustomer(
   //     firstName: string,
