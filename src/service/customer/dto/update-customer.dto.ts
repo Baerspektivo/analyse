@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString } from 'class-validator';
-import { CreateWebsiteDto } from '../../website/dto/create-website.dto';
+import { IsString, IsEmail } from 'class-validator';
+import { UpdateWebsiteDto } from '../../website/dto/update-website.dto';
 
-export class CreateCustomerDto {
+export class UpdateCustomerDto {
   @ApiProperty()
   @IsString()
   id: string;
@@ -20,6 +20,6 @@ export class CreateCustomerDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ type: () => CreateWebsiteDto })
-  website: CreateWebsiteDto[];
+  @ApiProperty({ type: () => UpdateWebsiteDto })
+  website: UpdateWebsiteDto[];
 }

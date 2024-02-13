@@ -1,24 +1,21 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { PagespeedService } from '../pagespeed/pagespeed.service';
 import { WebsiteService } from '../website/website.service';
 import { CustomerService } from './customer.service';
-import { CreateCustomerDto } from './dto/create-customer.dto';
-import { Customer } from './entities/customer.entity';
 
 @Controller('customer')
 export class CustomerController {
-  constructor(
-    private readonly customerService: CustomerService,
-    private readonly websiteService: WebsiteService,
-    private readonly pageSpeedService: PagespeedService,
-  ) {}
-  @Post()
-  async createCustomer(
-    @Body() createCustomerDto: CreateCustomerDto,
-  ): Promise<Customer> {
-    return this.customerService.createOrUpdateCustomer(createCustomerDto);
-  }
-
+  // constructor(
+  //   private readonly customerService: CustomerService,
+  //   private readonly websiteService: WebsiteService,
+  //   private readonly pageSpeedService: PagespeedService,
+  // ) {}
+  // @Post()
+  // async createCustomer(
+  //   @Body() createCustomerDto: CreateCustomerDto,
+  // ): Promise<Customer> {
+  //   return this.customerService.createOrUpdateCustomer(createCustomerDto);
+  // }
   // @Post()
   // async createCustomer(
   //   @Body() createCustomerDto: CreateCustomerDto,

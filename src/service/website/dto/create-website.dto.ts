@@ -1,5 +1,5 @@
-import { CreateCustomerDto } from 'src/service/customer/dto/create-customer.dto';
-import { CreatePageSpeedDto } from 'src/service/pagespeed/dto/create-pagespeed.dto';
+import { CreateCustomerDto } from '../../customer/dto/create-customer.dto';
+import { CreatePageSpeedDto } from '../../pagespeed/dto/create-pagespeed.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 

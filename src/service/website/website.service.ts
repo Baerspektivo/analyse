@@ -1,9 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Entity, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Customer } from '../customer/entities/customer.entity';
 import { Website } from './entities/website.entity';
-import { CreateWebsiteDto } from './dto/create-website.dto';
 
 @Injectable()
 export class WebsiteService {
@@ -14,27 +17,37 @@ export class WebsiteService {
     private websiteRepository: Repository<Website>,
   ) {}
 
-  async createOrUpdateWebsite(dto: CreateWebsiteDto): Promise<Website> {
-    const entity = this.toEntity(dto);
-    await this.websiteRepository.save(entity);
-    return entity;
+  async createOrUpdateWebsite(
+    data: Partial<Website>,
+    websiteId?: Website['id'],
+  ): Promise<Website> {
+    if (!data.customer.email) {
+      throw new InternalServerErrorException();
+    }
+
+    const customer = await this.customerRepository.findOne({
+      where: { email: data.customer.email },
+    });
+
+    if (!customer) {
+      throw new BadRequestException(
+        `Customer with id ${data.customer.email} not found`,
+      );
+    }
+    await this.websiteRepository.upsert(
+      {
+        id: websiteId,
+        url: data.url,
+        displayName: data.displayName,
+        customer,
+        pageSpeedDatas: data.pageSpeedDatas,
+      },
+      ['id'],
+    );
+
+    return this.websiteRepository.findOne({ where: { id: websiteId } });
   }
 
- async toEntity(dto: CreateWebsiteDto): Promise<Website> {
-    const entity = new Website();
-    entity.url = dto.url;
-    entity.displayName = dto.url;
-    const customer = await this.customerRepository.findOne(dto.customer.id);
-    if(!customer){
-      throw new Error(`Custinmer with ID ${dto.customer.id} not found`);
-    }
-    entity.customer = customer;
-    entity.pageSpeedDatas = dto.pageSpeedDatas;
-    return entity;
-  }
-  async saveEntity(entity: Website): Promise<Website> {
-    return await this.websiteRepository.save(entity);
-  }
   //   async createOrUpdateWebsite(
   //   urlDisplayName: string,
   //   url: string,
@@ -58,6 +71,7 @@ export class WebsiteService {
   //   }
   //   return website;
   // }
+
   async getAllWebsites(): Promise<Website[]> {
     return this.websiteRepository.find();
   }
