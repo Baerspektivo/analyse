@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Customer } from '../customer/entities/customer.entity';
 import { Website } from './entities/website.entity';
+import { CreateWebsiteDto } from './dto/create-website.dto';
 
 @Injectable()
 export class WebsiteService {
@@ -18,20 +19,20 @@ export class WebsiteService {
   ) {}
 
   async createOrUpdateWebsite(
-    data: Partial<Website>,
+    data: Partial<CreateWebsiteDto>,
     websiteId?: Website['id'],
   ): Promise<Website> {
-    if (!data.customer.email) {
+    if (!data.customer.id) {
       throw new InternalServerErrorException();
     }
 
     const customer = await this.customerRepository.findOne({
-      where: { email: data.customer.email },
+      where: { id: data.customer.id },
     });
 
     if (!customer) {
       throw new BadRequestException(
-        `Customer with id ${data.customer.email} not found`,
+        `Customer with id ${data.customer.id} not found`,
       );
     }
     await this.websiteRepository.upsert(
@@ -39,7 +40,7 @@ export class WebsiteService {
         id: websiteId,
         url: data.url,
         displayName: data.displayName,
-        customer,
+        customer: customer,
         pageSpeedDatas: data.pageSpeedDatas,
       },
       ['id'],
@@ -47,31 +48,6 @@ export class WebsiteService {
 
     return this.websiteRepository.findOne({ where: { id: websiteId } });
   }
-
-  //   async createOrUpdateWebsite(
-  //   urlDisplayName: string,
-  //   url: string,
-  //   customerId: string,
-  // ): Promise<Website> {
-  //   let website = await this.websiteRepository.findOne({
-  //     where: { url: url },
-  //   });
-  //   if (!website) {
-  //     website = new Website();
-  //     website.displayName = urlDisplayName;
-  //     website.url = url;
-  //     const customer = await this.customerRepository.findOne({
-  //       where: { customerId: customerId },
-  //     });
-  //     if (!customer) {
-  //       throw new Error(`Customer with CustomerID ${customerId} not found`);
-  //     }
-  //     website.customer = customer;
-  //     await this.websiteRepository.save(website);
-  //   }
-  //   return website;
-  // }
-
   async getAllWebsites(): Promise<Website[]> {
     return this.websiteRepository.find();
   }
@@ -79,9 +55,11 @@ export class WebsiteService {
     return this.websiteRepository.findOne({ where: { id: id } });
   }
   async getAllWebsitesByCustomerId(id: string): Promise<Website[]> {
-    return this.websiteRepository.find({
-      where: { customer: { id: id } },
-    });
+    return this.websiteRepository
+      .createQueryBuilder('website')
+      .leftJoinAndSelect('website.customer', 'customer')
+      .where('customer.id = :id', { id })
+      .getMany();
   }
   async getWebsiteByDisplayName(displayName: string): Promise<Website> {
     return this.websiteRepository.findOne({

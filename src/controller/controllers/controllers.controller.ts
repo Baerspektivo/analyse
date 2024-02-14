@@ -1,5 +1,6 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Get,
   InternalServerErrorException,
@@ -7,6 +8,9 @@ import {
   Param,
   Post,
   Res,
+  UseInterceptors,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { CustomerService } from 'src/service/customer/customer.service';
@@ -25,43 +29,6 @@ export class ControllersController {
     private readonly websiteService: WebsiteService,
     private readonly pageSpeedService: PagespeedService,
   ) {}
-  // @Post()
-  // async getPageSpeedResult(
-  //   @Body() createCustomerDto: CreateCustomerDto,
-  //   @Body() createWebsiteDto: CreateWebsiteDto,
-  //   @Res() res: Response,
-  // ): Promise<any> {
-  //   // Create or update customer
-  //   const customer =
-  //     await this.customerService.createOrUpdateCustomer(createCustomerDto);
-  //
-  //   // Create or update website
-  //   const website =
-  //     await this.websiteService.createOrUpdateWebsite(createWebsiteDto);
-  //
-  //   // Get PageSpeed result
-  //   await this.pageSpeedService.getPageSpeedResult(website.url, website.id);
-  //
-  //   res.sendStatus(200);
-  // }
-  @Get('pagespeed/:websiteId')
-  async getPageSpeedData(
-    @Param('websiteId') websiteId: string,
-    @Res() res: Response,
-  ): Promise<Response> {
-    try {
-      const pageSpeedData =
-        await this.pageSpeedService.getPageSpeedsByWebsiteId(websiteId);
-
-      return res.status(200).json(pageSpeedData);
-    } catch (error) {
-      return res.status(500).json({
-        message: 'An error occurred while retrieving PageSpeed data.',
-        error: error.message,
-      });
-    }
-  }
-
   @Post('newpage')
   async getPageSpeedResult(
     @Body()
@@ -106,78 +73,6 @@ export class ControllersController {
       });
     }
   }
-  @Get('page/:customerId')
-  async getCustomerDetails(@Param('id') id: string): Promise<any> {
-    try {
-      const customer = await this.customerService.getCustomerById(id);
-      if (!customer) {
-        throw new NotFoundException(`Customer with id ${id} not found`);
-      }
-
-      const websites = await this.websiteService.getAllWebsitesByCustomerId(id);
-
-      const websiteDetails = await Promise.all(
-        websites.map(async (website) => {
-          const latestPageSpeedResult =
-            await this.pageSpeedService.getLatestPageSpeedResult(website.id);
-          return {
-            customerId: customer.id,
-            firstName: customer.firstName,
-            lastName: customer.lastName,
-            displayName: website.displayName,
-            url: website.url,
-            urlId: website.id,
-            latestPageSpeedResult,
-          };
-        }),
-      );
-
-      return websiteDetails;
-    } catch (error) {
-      console.error('Error in getCustomerDetails:', error);
-      throw new InternalServerErrorException(
-        'An error occurred while retrieving customer details',
-      );
-    }
-  }
-  // @UseInterceptors(CurrentResultInterceptor)
-  // @Post()
-  // async getPageSpeedResult(
-  //   @Body()
-  //   body: {
-  //     firstName: string;
-  //     lastName: string;
-  //     email: string;
-  //     displayName: string;
-  //     url: string;
-  //   },
-  //   @Res() res: Response,
-  // ): Promise<any> {
-  //   const url = body.url;
-  //   const firstName = body.firstName;
-  //   const lastName = body.lastName;
-  //   const email = body.email;
-  //   const displayName = body.displayName;
-  //
-  //   // Create or update customer
-  //   const customer = await this.customerService.createOrUpdateCustomer(
-  //     firstName,
-  //     lastName,
-  //     email,
-  //   );
-  //
-  //   // Create or update website
-  //   const website = await this.websiteService.createOrUpdateWebsite(
-  //     displayName,
-  //     url,
-  //     customer.id, // assuming the customer object has an id property
-  //   );
-  //
-  //   // Get PageSpeed result
-  //   await this.pageSpeedService.getPageSpeedResult(url, website.id); // assuming the website object has an id property
-  //
-  //   res.sendStatus(200);
-  // }
   @Get('customers')
   findAll(): Promise<Customer[]> {
     return this.customerService.getAllCustomers();
@@ -188,7 +83,7 @@ export class ControllersController {
   ): Promise<PageSpeedData[]> {
     return this.pageSpeedService.getPageSpeedsByWebsiteId(id);
   }
-  @Get('cusotmer')
+  @Get('nutzer/:id')
   async getCustomerById(@Param('id') id: string): Promise<Customer> {
     return this.customerService.getCustomerById(id);
   }
@@ -205,5 +100,72 @@ export class ControllersController {
     @Param('displayName') displayName: string,
   ): Promise<Website> {
     return this.websiteService.getWebsiteByDisplayName(displayName);
+  }
+  @Get('lol/:id')
+  async findAllWebsitsByCustomerId(
+    @Param('id') id: string,
+  ): Promise<Website[]> {
+    return this.websiteService.getAllWebsitesByCustomerId(id);
+  }
+
+  @Get('last/:customerId')
+  @UseInterceptors(ClassSerializerInterceptor)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async getCustomerDetailsWithPageSpeeds(
+    @Param('customerId') customerId: string,
+  ): Promise<any> {
+    try {
+      const customer = await this.customerService.getCustomerById(customerId);
+      if (!customer) {
+        throw new NotFoundException(`Customer with id ${customerId} not found`);
+      }
+
+      const websites =
+        await this.websiteService.getAllWebsitesByCustomerId(customerId);
+
+      if (!websites || websites.length === 0) {
+        throw new NotFoundException(
+          `No websites found for customer with ID ${customerId}`,
+        );
+      }
+
+      const websiteDetails = await Promise.all(
+        websites.map(async (website) => {
+          const pageSpeedResults =
+            await this.pageSpeedService.getPageSpeedsByWebsiteId(website.id);
+          return {
+            customerId: customer.id,
+            firstName: customer.firstName,
+            lastName: customer.lastName,
+            displayName: website.displayName,
+            url: website.url,
+            pageSpeedResults,
+          };
+        }),
+      );
+
+      return websiteDetails;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'An error occurred while retrieving customer.',
+      );
+    }
+  }
+  @Get('pagespeed/:websiteId')
+  async getPageSpeedData(
+    @Param('websiteId') websiteId: string,
+    @Res() res: Response,
+  ): Promise<Response> {
+    try {
+      const pageSpeedData =
+        await this.pageSpeedService.getPageSpeedsByWebsiteId(websiteId);
+
+      return res.status(200).json(pageSpeedData);
+    } catch (error) {
+      return res.status(500).json({
+        message: 'An error occurred while retrieving page speed data.',
+        error: error.message,
+      });
+    }
   }
 }

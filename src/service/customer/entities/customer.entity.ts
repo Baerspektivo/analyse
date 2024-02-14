@@ -28,5 +28,5 @@ export class Customer {
 
   @ApiProperty()
   @OneToMany(() => Website, (website) => website.customer)
-  website: Website[];
+  websites: Website[];
 }

@@ -33,7 +33,10 @@ export class PagespeedService {
       /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?\/[a-zA-Z0-9]{2,}|((https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?)|(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})?/g,
     );
     if (!url || url === '' || url.match(expression) === null) {
-      throw new HttpException('Bad Request', 400);
+      throw new HttpException(
+        "Bad Request: The URL must begin with 'http://' or 'https://' and have a valid domain format.",
+        400,
+      );
     }
     const encodedUrl = encodeURI(url);
     const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodedUrl}&key=${this.API_KEY}`;
@@ -65,11 +68,23 @@ export class PagespeedService {
       where: { website: { id: websiteId } },
     });
   }
-  async getLatestPageSpeedResult(websiteId: string): Promise<PageSpeedData> {
-    return this.pageSpeedEntity.findOne({
-      where: { id: websiteId },
-            relations:{ cutomer: true}
-      order: { createdAt: 'DESC' },
-    });
+  async getLatestPageSpeedResult(websiteId: string): Promise<PageSpeedData[]> {
+    const websites =
+      await this.websiteService.getAllWebsitesByCustomerId(websiteId);
+    if (!websites || websites.length === 0) {
+      throw new Error(`No webseits found for customer with ID ${websiteId}`);
+    }
+    const latestPageSpeedResults = [];
+    for (const website of websites) {
+      const pageSpeedResults = await this.pageSpeedEntity.find({
+        where: { website: { id: website.id } },
+        order: { createdAt: 'DESC' },
+        take: 1,
+      });
+      if (pageSpeedResults.length > 0) {
+        latestPageSpeedResults.push(...pageSpeedResults);
+      }
+    }
+    return latestPageSpeedResults;
   }
 }

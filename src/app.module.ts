@@ -2,6 +2,8 @@ import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ControllersController } from './controller/controllers/controllers.controller';
+import { ControllersService } from './controller/controllers/controllers.service';
 import { CustomerController } from './service/customer/customer.controller';
 import { CustomerModule } from './service/customer/customer.module';
 import { CustomerService } from './service/customer/customer.service';
@@ -12,10 +14,6 @@ import { PagespeedService } from './service/pagespeed/pagespeed.service';
 import { Website } from './service/website/entities/website.entity';
 import { WebsiteController } from './service/website/website.controller';
 import { WebsiteService } from './service/website/website.service';
-import { ControllersController } from './controller/controllers/controllers.controller';
-import { ControllersService } from './controller/controllers/controllers.service';
-import { APP_INTERCEPTOR } from '@nestjs/core';
-import { CurrentResultInterceptor } from './interceptor/currentresult.interceptor';
 
 @Module({
   imports: [
@@ -50,7 +48,6 @@ import { CurrentResultInterceptor } from './interceptor/currentresult.intercepto
     PagespeedService,
     ControllersService,
     ConfigService,
-    // { provide: APP_INTERCEPTOR, useClass: CurrentResultInterceptor },
   ],
 })
 export class AppModule {}

@@ -25,7 +25,7 @@ export class PageSpeedData {
   @ApiProperty()
   website: Website;
 
-  // @Exclude()
+  @Exclude()
   @Column('json')
   @ApiProperty({ type: () => [String] })
   lighthouseObject: string[];

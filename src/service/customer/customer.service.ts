@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Website } from '../website/entities/website.entity';
+import { CreateCustomerDto } from './dto/create-customer.dto';
 import { Customer } from './entities/customer.entity';
 
 @Injectable()
@@ -13,12 +14,12 @@ export class CustomerService {
     private websiteRepository: Repository<Website>,
   ) {}
 
-  async createOrUpdateCustomer(data: Partial<Customer>): Promise<Customer> {
+  async createOrUpdateCustomer(
+    data: Partial<CreateCustomerDto>,
+  ): Promise<Customer> {
     let customer = await this.customerRepository.findOne({
       where: { email: data.email },
     });
-    console.log('CUSTOMER:', customer);
-    console.log('ID:', data.email);
     if (!customer) {
       customer = new Customer();
       customer.firstName = data.firstName;
@@ -28,24 +29,6 @@ export class CustomerService {
     }
     return customer;
   }
-  // async createOrUpdateCustomer(
-  //     firstName: string,
-  //     lastName: string,
-  //     email: string,
-  //   ): Promise<Customer> {
-  //     let customer = await this.customerRepository.findOne({
-  //       where: { email: email },
-  //     });
-  //     if (!customer) {
-  //       customer = new Customer();
-  //       customer.firstName = firstName;
-  //       customer.lastName = lastName;
-  //       customer.email = email;
-  //       await this.customerRepository.save(customer);
-  //     }
-  //
-  //     return customer;
-  //   }
   async getAllCustomers(): Promise<Customer[]> {
     return this.customerRepository.find();
   }

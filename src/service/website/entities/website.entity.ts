@@ -16,11 +16,15 @@ export class Website {
   @ApiProperty()
   id: string;
 
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @ApiProperty()
+  createdAt: Date;
+
   @Column()
   @ApiProperty()
   displayName: string;
 
-  @ManyToOne(() => Customer)
+  @ManyToOne(() => Customer, (customer) => customer.websites)
   @JoinColumn({ name: 'customerId' })
   @ApiProperty()
   customer: Customer;
