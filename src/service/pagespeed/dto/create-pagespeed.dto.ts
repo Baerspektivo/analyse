@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import { CreateWebsiteDto } from '../../website/dto/create-website.dto';
-import { IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreatePageSpeedDto {
   @ApiProperty()
@@ -81,18 +81,22 @@ export class CreatePageSpeedDto {
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   largestContentfulPaintScore: string;
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   largestContentfulPaintDisplayValue: string;
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   largestContentfulPaintNumericValue: string;
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   largestContentfulPaintNumericUnit: string;
 
   @ApiProperty()
@@ -113,25 +117,31 @@ export class CreatePageSpeedDto {
 
   @ApiProperty({ type: () => [String] })
   @IsString()
+  @IsOptional()
   unusedCssRulesItems: string[];
 
   @ApiProperty()
+  @IsOptional()
   thirdPartySummaryDisplayValue: string | null;
 
   @ApiProperty({ type: () => [String] })
   @IsString()
+  @IsOptional()
   thirdPartySummaryItemsUrl: string[];
 
   @ApiProperty({ type: () => [Number] })
   @IsNumber()
+  @IsOptional()
   thirdPartySummaryItemsTransfer: number[];
 
   @ApiProperty({ type: () => [Number] })
   @IsNumber()
+  @IsOptional()
   thirdPartySummaryItemsMainThred: number[];
 
   @ApiProperty({ type: () => [Number] })
   @IsNumber()
+  @IsOptional()
   thirdPartySummaryItemsBlockingTime: number[];
 
   @ApiProperty()
@@ -151,6 +161,7 @@ export class CreatePageSpeedDto {
   timeToInteractiveNumericUnit: string;
 
   @ApiProperty()
+  @IsOptional()
   totalByteWeightScore: number | null;
 
   @ApiProperty()

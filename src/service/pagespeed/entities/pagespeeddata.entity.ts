@@ -100,19 +100,19 @@ export class PageSpeedData {
   @ApiProperty()
   speedIndexNumericUnit: string;
 
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty()
   largestContentfulPaintScore: string;
 
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty()
   largestContentfulPaintDisplayValue: string;
 
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty()
   largestContentfulPaintNumericValue: string;
 
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty()
   largestContentfulPaintNumericUnit: string;
 
@@ -133,7 +133,7 @@ export class PageSpeedData {
   totalBlockingTimeNumericUnit: string;
 
   @Column('json')
-  @ApiProperty({ type: () => [String] })
+  @ApiProperty({ type: () => [String], nullable: true })
   unusedCssRulesItems: string[];
 
   @Column({ nullable: true })

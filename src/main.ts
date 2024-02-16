@@ -21,6 +21,9 @@ async function bootstrap() {
       forbidNonWhitelisted: true, //deleting errors that is not wihtelisted.
     }),
   );
+  //#region acception corse
+  app.enableCors();
+  //#endregion
   await app.listen(3000);
 }
 bootstrap();

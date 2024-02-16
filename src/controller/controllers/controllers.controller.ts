@@ -138,6 +138,7 @@ export class ControllersController {
             firstName: customer.firstName,
             lastName: customer.lastName,
             displayName: website.displayName,
+            createdAt: customer.createdAt,
             url: website.url,
             pageSpeedResults,
           };

@@ -77,11 +77,13 @@ export function createPageSpeedDTOFromApiResponse(
     largestContentfulPaintData.numericUnit;
 
   // Unused CSS Rules Data
-  pageSpeedDTO.unusedCssRulesItems = [];
-  const cssdata = unusedCssRulesData.details.items;
-  for (let i = 0; i < cssdata.length; i++) {
-    const item = cssdata[i];
-    pageSpeedDTO.unusedCssRulesItems.push(item);
+  if (unusedCssRulesData && unusedCssRulesData.details) {
+    pageSpeedDTO.unusedCssRulesItems = [];
+    const cssdata = unusedCssRulesData.details.items;
+    for (let i = 0; i < cssdata.length; i++) {
+      const item = cssdata[i];
+      pageSpeedDTO.unusedCssRulesItems.push(item);
+    }
   }
 
   // Speed Index Data
