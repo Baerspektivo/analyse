@@ -6,7 +6,7 @@ import { LoadPageSpeedDto } from '../../pagespeed/dto/load-pagespeed.dto';
 export class LoadWebsiteDto {
   @ApiProperty()
   @IsString()
-  id: string;
+  websiteId: string;
 
   @ApiProperty()
   @IsString()

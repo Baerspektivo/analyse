@@ -27,7 +27,7 @@ export class Website {
   @ManyToOne(() => Customer, (customer) => customer.websites)
   @JoinColumn({ name: 'customerId' })
   @ApiProperty()
-  customer: Customer;
+  customers: Customer;
 
   @Column({ nullable: true })
   @ApiProperty()

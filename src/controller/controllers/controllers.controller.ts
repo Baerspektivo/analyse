@@ -12,6 +12,7 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { CustomerService } from 'src/service/customer/customer.service';
 import { Customer } from 'src/service/customer/entities/customer.entity';
@@ -20,7 +21,9 @@ import { PagespeedService } from 'src/service/pagespeed/pagespeed.service';
 import { Website } from 'src/service/website/entities/website.entity';
 import { WebsiteService } from 'src/service/website/website.service';
 import { ControllersService } from './controllers.service';
+import { find } from 'rxjs';
 
+@ApiTags('pagespeed')
 @Controller('controllers')
 export class ControllersController {
   constructor(
@@ -47,24 +50,32 @@ export class ControllersController {
       const lastName = body.lastName;
       const email = body.email;
       const displayName = body.displayName;
-
       const customer = await this.customerService.createOrUpdateCustomer({
         firstName,
         lastName,
         email,
       });
-
+      const customerId = customer.id;
       const website = await this.websiteService.createOrUpdateWebsite({
         url,
         displayName,
         customer,
       });
 
-      await this.pageSpeedService.getPageSpeedResult(url, website.id);
+      const websiteId = website.id;
+      const result = await this.pageSpeedService.getPageSpeedResult(
+        url,
+        website.id,
+      );
 
-      return res
-        .status(200)
-        .json({ message: 'PageSpeed data retrieved and saved successfully.' });
+      return res.status(200).json({
+        message: 'PageSpeed data retrieved and saved successfully.',
+        websiteId,
+        website,
+        customer,
+        customerId,
+        result,
+      });
     } catch (error) {
       console.error('Error in getPageSpeedResult:', error);
       return res.status(500).json({
@@ -73,11 +84,16 @@ export class ControllersController {
       });
     }
   }
+  @Get('allpages/:id')
+  async findTheHole(@Param('id') id: string): Promise<PageSpeedData[]> {
+    return this.pageSpeedService.getAllPageSpeeds(id);
+  }
+
   @Get('customers')
   findAll(): Promise<Customer[]> {
     return this.customerService.getAllCustomers();
   }
-  @Get('currentresult')
+  @Get('currentresult/:id')
   async getCurrentPageSpeedResult(
     @Param('id') id: string,
   ): Promise<PageSpeedData[]> {

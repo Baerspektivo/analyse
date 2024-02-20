@@ -6,8 +6,8 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Customer } from '../customer/entities/customer.entity';
-import { Website } from './entities/website.entity';
 import { CreateWebsiteDto } from './dto/create-website.dto';
+import { Website } from './entities/website.entity';
 
 @Injectable()
 export class WebsiteService {
@@ -40,7 +40,7 @@ export class WebsiteService {
         id: websiteId,
         url: data.url,
         displayName: data.displayName,
-        customer: customer,
+        customers: customer,
         pageSpeedDatas: data.pageSpeedDatas,
       },
       ['id'],

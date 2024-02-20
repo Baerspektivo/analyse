@@ -11,6 +11,7 @@ import {
   convertDTOToEntity,
   createPageSpeedDTOFromApiResponse,
 } from './pagespeed.utils';
+import { error } from 'console';
 
 @Injectable()
 export class PagespeedService {
@@ -25,7 +26,7 @@ export class PagespeedService {
   API_KEY = this.configService.get<string>('API_KEY');
   //Request with URL and API Key to Google Lighthouse
   async pageSpeedRequest(url: string): Promise<any> {
-    console.log('CHECK URL:', url);
+    // console.log('CHECK URL:', url);
     if (!url.startsWith('https://') && !url.startsWith('http://')) {
       url = 'https://' + url;
     }
@@ -43,12 +44,15 @@ export class PagespeedService {
     const response$ = this.httpService
       .get(apiUrl)
       .pipe(map((response) => response.data));
-    console.log('RESPONSE:', encodedUrl);
+    // console.log('RESPONSE:', encodedUrl);
     const data = await firstValueFrom(response$);
     return data;
   }
 
-  async getPageSpeedResult(url: string, websiteId: string): Promise<void> {
+  async getPageSpeedResult(
+    url: string,
+    websiteId: string,
+  ): Promise<PageSpeedData> {
     const data = await this.pageSpeedRequest(url);
     // Check if the website exists in the database
     const website = await this.websiteService.getWebsiteById(websiteId);
@@ -61,12 +65,16 @@ export class PagespeedService {
     const entity = convertDTOToEntity(pageSpeedDTO, website);
     // Save Entity into Database
     await this.pageSpeedEntity.save(entity);
-    console.log(url, entity);
+    // console.log(url, entity);
+    return entity;
   }
   async getPageSpeedsByWebsiteId(websiteId: string): Promise<PageSpeedData[]> {
-    return this.pageSpeedEntity.find({
+    return await this.pageSpeedEntity.find({
       where: { website: { id: websiteId } },
     });
+  }
+  async getAllPageSpeeds(webId: string): Promise<PageSpeedData[]> {
+    return await this.pageSpeedEntity.find({ where: { id: webId } });
   }
   async getLatestPageSpeedResult(websiteId: string): Promise<PageSpeedData[]> {
     const websites =

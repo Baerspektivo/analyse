@@ -27,6 +27,6 @@ export class Customer {
   email: string;
 
   @ApiProperty()
-  @OneToMany(() => Website, (website) => website.customer)
+  @OneToMany(() => Website, (website) => website.customers)
   websites: Website[];
 }
