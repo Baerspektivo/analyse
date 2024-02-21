@@ -11,7 +11,6 @@ import {
   convertDTOToEntity,
   createPageSpeedDTOFromApiResponse,
 } from './pagespeed.utils';
-import { error } from 'console';
 
 @Injectable()
 export class PagespeedService {
@@ -24,7 +23,7 @@ export class PagespeedService {
   ) {}
 
   API_KEY = this.configService.get<string>('API_KEY');
-  //Request with URL and API Key to Google Lighthouse
+  //#region  Request with URL and API Key to Google Lighthouse to get PageSpeedResults
   async pageSpeedRequest(url: string): Promise<any> {
     // console.log('CHECK URL:', url);
     if (!url.startsWith('https://') && !url.startsWith('http://')) {
@@ -48,13 +47,12 @@ export class PagespeedService {
     const data = await firstValueFrom(response$);
     return data;
   }
-
+  //#endregion
   async getPageSpeedResult(
     url: string,
     websiteId: string,
   ): Promise<PageSpeedData> {
     const data = await this.pageSpeedRequest(url);
-    // Check if the website exists in the database
     const website = await this.websiteService.getWebsiteById(websiteId);
     if (!website) {
       throw new Error(`Website with WebsiteID ${websiteId} not found`);
@@ -76,23 +74,23 @@ export class PagespeedService {
   async getAllPageSpeeds(webId: string): Promise<PageSpeedData[]> {
     return await this.pageSpeedEntity.find({ where: { id: webId } });
   }
-  async getLatestPageSpeedResult(websiteId: string): Promise<PageSpeedData[]> {
-    const websites =
-      await this.websiteService.getAllWebsitesByCustomerId(websiteId);
-    if (!websites || websites.length === 0) {
-      throw new Error(`No webseits found for customer with ID ${websiteId}`);
-    }
-    const latestPageSpeedResults = [];
-    for (const website of websites) {
-      const pageSpeedResults = await this.pageSpeedEntity.find({
-        where: { website: { id: website.id } },
-        order: { createdAt: 'DESC' },
-        take: 1,
-      });
-      if (pageSpeedResults.length > 0) {
-        latestPageSpeedResults.push(...pageSpeedResults);
-      }
-    }
-    return latestPageSpeedResults;
-  }
+  // async getLatestPageSpeedResult(websiteId: string): Promise<PageSpeedData[]> {
+  //   const websites =
+  //     await this.websiteService.getAllWebsitesByCustomerId(websiteId);
+  //   if (!websites || websites.length === 0) {
+  //     throw new Error(`No webseits found for customer with ID ${websiteId}`);
+  //   }
+  //   const latestPageSpeedResults = [];
+  //   for (const website of websites) {
+  //     const pageSpeedResults = await this.pageSpeedEntity.find({
+  //       where: { website: { id: website.id } },
+  //       order: { createdAt: 'DESC' },
+  //       take: 1,
+  //     });
+  //     if (pageSpeedResults.length > 0) {
+  //       latestPageSpeedResults.push(...pageSpeedResults);
+  //     }
+  //   }
+  //   return latestPageSpeedResults;
+  // }
 }
