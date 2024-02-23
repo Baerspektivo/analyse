@@ -88,6 +88,10 @@ export class ControllersController {
   async findTheHole(@Param('id') id: string): Promise<PageSpeedData[]> {
     return this.pageSpeedService.getAllPageSpeeds(id);
   }
+  @Get('gettall/:id')
+  async findAll(@Param('id') id: string): Promise<PageSpeedData[]> {
+    return this.pageSpeedService.getAllPageSpeeds(id);
+  }
   //#region functions to test the backend and expansion
   // @Get('customers')
   // findAll(): Promise<Customer[]> {

@@ -198,4 +198,14 @@ export class CreatePageSpeedDto {
   @ApiProperty()
   @IsString()
   domSizeNumericUnit: string;
+
+  @ApiProperty({ type: () => [String] })
+  @IsString()
+  @IsOptional()
+  unusedJavaScript: string[];
+
+  @ApiProperty({ type: () => [String] })
+  @IsString()
+  @IsOptional()
+  lcpLazyLoaded: string[];
 }

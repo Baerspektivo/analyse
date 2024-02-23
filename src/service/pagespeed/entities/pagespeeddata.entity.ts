@@ -211,4 +211,12 @@ export class PageSpeedData {
   @Column()
   @ApiProperty()
   domSizeNumericUnit: string;
+
+  @Column('json')
+  @ApiProperty({ type: () => [String], nullable: true })
+  unusedJavaScript: string[];
+
+  @Column('json')
+  @ApiProperty({ type: () => [String], nullable: true })
+  lcpLazyLoaded: string[];
 }
