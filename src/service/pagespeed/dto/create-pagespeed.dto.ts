@@ -4,15 +4,18 @@ import { CreateWebsiteDto } from '../../website/dto/create-website.dto';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreatePageSpeedDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'Pagespeed Id' })
   @IsString()
   id: string;
 
-  @ApiProperty({ type: () => CreateWebsiteDto })
+  @ApiProperty({
+    type: () => CreateWebsiteDto,
+    description: 'Website Foring Key',
+  })
   website: CreateWebsiteDto;
 
   @Exclude()
-  @ApiProperty()
+  @ApiProperty({ description: 'Hole page-speed result ' })
   lighthouseObject: any;
 
   @ApiProperty()

@@ -2,6 +2,9 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { CreateWebsiteDto } from './service/website/dto/create-website.dto';
+import { CreateCustomerDto } from './service/customer/dto/create-customer.dto';
+import { CreatePageSpeedDto } from './service/pagespeed/dto/create-pagespeed.dto';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,7 +15,9 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('pagespeed')
     .build();
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, config, {
+    extraModels: [CreateWebsiteDto, CreateCustomerDto, CreatePageSpeedDto],
+  });
   SwaggerModule.setup('api', app, document);
   app.useGlobalPipes(
     new ValidationPipe({

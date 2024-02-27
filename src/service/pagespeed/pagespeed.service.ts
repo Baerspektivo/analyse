@@ -25,7 +25,6 @@ export class PagespeedService {
   API_KEY = this.configService.get<string>('API_KEY');
   //#region  Request with URL and API Key to Google Lighthouse to get PageSpeedResults
   async pageSpeedRequest(url: string): Promise<any> {
-    // console.log('CHECK URL:', url);
     if (!url.startsWith('https://') && !url.startsWith('http://')) {
       url = 'https://' + url;
     }
@@ -43,7 +42,6 @@ export class PagespeedService {
     const response$ = this.httpService
       .get(apiUrl)
       .pipe(map((response) => response.data));
-    // console.log('RESPONSE:', encodedUrl);
     const data = await firstValueFrom(response$);
     return data;
   }
@@ -63,7 +61,6 @@ export class PagespeedService {
     const entity = convertDTOToEntity(pageSpeedDTO, website);
     // Save Entity into Database
     await this.pageSpeedEntity.save(entity);
-    // console.log(url, entity);
     return entity;
   }
   async getPageSpeedsByWebsiteId(websiteId: string): Promise<PageSpeedData[]> {
@@ -74,23 +71,4 @@ export class PagespeedService {
   async getAllPageSpeeds(webId: string): Promise<PageSpeedData[]> {
     return await this.pageSpeedEntity.find({ where: { id: webId } });
   }
-  // async getLatestPageSpeedResult(websiteId: string): Promise<PageSpeedData[]> {
-  //   const websites =
-  //     await this.websiteService.getAllWebsitesByCustomerId(websiteId);
-  //   if (!websites || websites.length === 0) {
-  //     throw new Error(`No webseits found for customer with ID ${websiteId}`);
-  //   }
-  //   const latestPageSpeedResults = [];
-  //   for (const website of websites) {
-  //     const pageSpeedResults = await this.pageSpeedEntity.find({
-  //       where: { website: { id: website.id } },
-  //       order: { createdAt: 'DESC' },
-  //       take: 1,
-  //     });
-  //     if (pageSpeedResults.length > 0) {
-  //       latestPageSpeedResults.push(...pageSpeedResults);
-  //     }
-  //   }
-  //   return latestPageSpeedResults;
-  // }
 }

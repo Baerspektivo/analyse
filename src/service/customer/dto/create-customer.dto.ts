@@ -3,23 +3,26 @@ import { IsEmail, IsString } from 'class-validator';
 import { CreateWebsiteDto } from '../../website/dto/create-website.dto';
 
 export class CreateCustomerDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'Customer Id' })
   @IsString()
   id: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'First name' })
   @IsString()
   firstName: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Last name ' })
   @IsString()
   lastName: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'E-Mail adress' })
   @IsString()
   @IsEmail()
   email: string;
 
-  @ApiProperty({ type: () => CreateWebsiteDto })
+  @ApiProperty({
+    type: () => CreateWebsiteDto,
+    description: 'Website Association',
+  })
   website: CreateWebsiteDto[];
 }

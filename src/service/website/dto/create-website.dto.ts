@@ -4,23 +4,26 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateWebsiteDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'Website Id' })
   @IsString()
   id: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Company Name' })
   @IsString()
   displayName: string;
 
-  @ApiProperty({ type: () => CreateCustomerDto })
+  @ApiProperty({ type: () => CreateCustomerDto, description: 'Forign Key' })
   @IsNotEmpty()
   customer: { id: string };
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Website Neme' })
   @IsString()
   url: string;
 
-  @ApiProperty({ type: () => CreatePageSpeedDto })
+  @ApiProperty({
+    type: () => CreatePageSpeedDto,
+    description: 'PageSpeed Association',
+  })
   @IsNotEmpty()
   pageSpeedDatas: CreatePageSpeedDto[];
 }
