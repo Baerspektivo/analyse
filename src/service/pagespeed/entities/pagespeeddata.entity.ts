@@ -215,8 +215,4 @@ export class PageSpeedData {
   @Column('json')
   @ApiProperty({ type: () => [String], nullable: true })
   unusedJavaScript: string[];
-
-  @Column('json')
-  @ApiProperty({ type: () => [String], nullable: true })
-  lcpLazyLoaded: string[];
 }

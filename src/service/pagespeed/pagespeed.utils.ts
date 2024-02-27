@@ -27,7 +27,6 @@ export function createPageSpeedDTOFromApiResponse(
   const largestContentfulPaintData =
     data.lighthouseResult.audits['largest-contentful-paint'];
   const unusedJavaScript = data.lighthouseResult.audits['unused-javascript'];
-  const lcpLazyLoaded = data.lighthouseResult.audits['lcp-lazy-louded'];
 
   // Save howl object
   pageSpeedDTO.lighthouseObject = mainLighthouseObjet;
@@ -90,19 +89,10 @@ export function createPageSpeedDTOFromApiResponse(
   // Unused JavaScript
   if (unusedJavaScript && unusedJavaScript.details) {
     pageSpeedDTO.unusedJavaScript = [];
-    const javadata = unusedJavaScript.detalis.items;
+    const javadata = unusedJavaScript.details.items;
     for (let i = 0; i < javadata.length; i++) {
       const item = javadata[i];
       pageSpeedDTO.unusedJavaScript.push(item);
-    }
-  }
-  // Largest Contentful Paint-Element
-  if (lcpLazyLoaded && lcpLazyLoaded.details) {
-    pageSpeedDTO.lcpLazyLoaded = [];
-    const lcpdata = lcpLazyLoaded.details.items;
-    for (let i = 0; i < lcpLazyLoaded.length; i++) {
-      const item = lcpdata[i];
-      pageSpeedDTO.lcpLazyLoaded.push(item);
     }
   }
   // Speed Index Data
@@ -279,9 +269,6 @@ export function convertDTOToEntity(
 
   // Unused Java Script Data
   entity.unusedJavaScript = dto.unusedJavaScript;
-
-  // Largest Contentful Paint-Element
-  entity.lcpLazyLoaded = dto.lcpLazyLoaded;
 
   // Speed Index Data
   entity.speedIndexScore = dto.speedIndexScore;

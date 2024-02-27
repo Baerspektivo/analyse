@@ -203,9 +203,4 @@ export class CreatePageSpeedDto {
   @IsString()
   @IsOptional()
   unusedJavaScript: string[];
-
-  @ApiProperty({ type: () => [String] })
-  @IsString()
-  @IsOptional()
-  lcpLazyLoaded: string[];
 }
