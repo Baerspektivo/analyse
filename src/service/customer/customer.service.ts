@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Website } from '../website/entities/website.entity';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { Customer } from './entities/customer.entity';
 
@@ -10,8 +9,6 @@ export class CustomerService {
   constructor(
     @InjectRepository(Customer)
     private customerRepository: Repository<Customer>,
-    @InjectRepository(Website)
-    private websiteRepository: Repository<Website>,
   ) {}
 
   async createOrUpdateCustomer(
@@ -25,6 +22,7 @@ export class CustomerService {
       customer.firstName = data.firstName;
       customer.lastName = data.lastName;
       customer.email = data.email;
+      customer.dsgvo = data.dsgvo;
       await this.customerRepository.save(customer);
     }
     return customer;

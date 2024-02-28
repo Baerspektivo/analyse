@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString } from 'class-validator';
+import { IsBoolean, IsEmail, IsString } from 'class-validator';
 import { CreateWebsiteDto } from '../../website/dto/create-website.dto';
 
 export class CreateCustomerDto {
@@ -25,4 +25,8 @@ export class CreateCustomerDto {
     description: 'Website Association',
   })
   website: CreateWebsiteDto[];
+
+  @ApiProperty({ description: 'DSGVO confirmation' })
+  @IsBoolean()
+  dsgvo: boolean;
 }

@@ -29,4 +29,8 @@ export class Customer {
   @ApiProperty()
   @OneToMany(() => Website, (website) => website.customers)
   websites: Website[];
+
+  @ApiProperty()
+  @Column({ nullable: false })
+  dsgvo: boolean;
 }

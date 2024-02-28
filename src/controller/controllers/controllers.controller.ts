@@ -16,13 +16,11 @@ import { CustomerService } from 'src/service/customer/customer.service';
 import { PageSpeedData } from 'src/service/pagespeed/entities/pagespeeddata.entity';
 import { PagespeedService } from 'src/service/pagespeed/pagespeed.service';
 import { WebsiteService } from 'src/service/website/website.service';
-import { ControllersService } from './controllers.service';
 
 @ApiTags('pagespeed')
 @Controller('controllers')
 export class ControllersController {
   constructor(
-    private readonly controllersService: ControllersService,
     private readonly customerService: CustomerService,
     private readonly websiteService: WebsiteService,
     private readonly pageSpeedService: PagespeedService,
@@ -36,6 +34,7 @@ export class ControllersController {
       url: string;
       displayName: string;
       email: string;
+      dsgvo: boolean;
     },
     @Res() res: Response,
   ): Promise<any> {
@@ -45,10 +44,12 @@ export class ControllersController {
       const lastName = body.lastName;
       const email = body.email;
       const displayName = body.displayName;
+      const dsgvo = body.dsgvo;
       const customer = await this.customerService.createOrUpdateCustomer({
         firstName,
         lastName,
         email,
+        dsgvo,
       });
       const website = await this.websiteService.createOrUpdateWebsite({
         url,
