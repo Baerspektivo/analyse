@@ -19,11 +19,14 @@ export class PagespeedService {
     private readonly configService: ConfigService,
     private readonly websiteService: WebsiteService,
     @InjectRepository(PageSpeedData)
-    private readonly pageSpeedEntity: Repository<PageSpeedData>,
+    private readonly pageSpeedRepository: Repository<PageSpeedData>,
   ) {}
 
   API_KEY = this.configService.get<string>('API_KEY');
   //#region  Request with URL and API Key to Google Lighthouse to get PageSpeedResults
+  // It's essential to note that the Google API only accepts URLs with a protocol (such as "http://" or "https://").
+  // If a domain is registered only with a subdomain, you can only test it with the subdomain included.
+  // Without a subdomain, it will result in a 500 Error.
   async pageSpeedRequest(url: string): Promise<any> {
     if (!url.startsWith('https://') && !url.startsWith('http://')) {
       url = 'https://' + url;
@@ -46,6 +49,7 @@ export class PagespeedService {
     return data;
   }
   //#endregion
+
   async getPageSpeedResult(
     url: string,
     websiteId: string,
@@ -60,15 +64,15 @@ export class PagespeedService {
     // Convert DTO to Entity
     const entity = convertDTOToEntity(pageSpeedDTO, website);
     // Save Entity into Database
-    await this.pageSpeedEntity.save(entity);
+    await this.pageSpeedRepository.save(entity);
     return entity;
   }
   async getPageSpeedsByWebsiteId(websiteId: string): Promise<PageSpeedData[]> {
-    return await this.pageSpeedEntity.find({
+    return await this.pageSpeedRepository.find({
       where: { website: { id: websiteId } },
     });
   }
   async getAllPageSpeeds(webId: string): Promise<PageSpeedData[]> {
-    return await this.pageSpeedEntity.find({ where: { id: webId } });
+    return await this.pageSpeedRepository.find({ where: { id: webId } });
   }
 }
