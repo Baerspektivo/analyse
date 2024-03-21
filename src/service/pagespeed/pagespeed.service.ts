@@ -59,11 +59,11 @@ export class PagespeedService {
     if (!website) {
       throw new Error(`Website with WebsiteID ${websiteId} not found`);
     }
-    // Create DTO with API results
+    // Create DTO with API results, with request "data"
     const pageSpeedDTO = createPageSpeedDTOFromApiResponse(data);
-    // Convert DTO to Entity
+    // Convert DTO to Entity it is a function in utils that gets 2 objets to convertDTOToEntity in entitys.
     const entity = convertDTOToEntity(pageSpeedDTO, website);
-    // Save Entity into Database
+    // Save Entity into Database the entity that crated in the convertfunction will saved in the entity
     await this.pageSpeedRepository.save(entity);
     return entity;
   }
